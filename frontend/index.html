@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>SkillGap AI</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>SkillGap AI</h1>
+
+        <p class="subtitle">
+            Discover your best job matches and identify the skills you should learn next.
+        </p>
+
+        <div class="form-card">
+
+            <label>Your Skills</label>
+
+            <textarea
+                id="skills"
+                placeholder="Python, SQL, Excel, Power BI, Data Analysis"
+            ></textarea>
+
+            <label>Target Job Role</label>
+
+            <input
+                id="targetRole"
+                type="text"
+                placeholder="e.g. data"
+            >
+
+            <button onclick="getRecommendations()">
+                Analyze My Skills
+            </button>
+
+        </div>
+
+        <div id="loading" class="hidden">
+            Analyzing job matches...
+        </div>
+
+        <section id="results" class="hidden">
+
+            <h2>Top Job Matches</h2>
+            <div id="jobResults"></div>
+
+            <h2>Skills You Should Learn Next</h2>
+            <div id="learningSkills"></div>
+
+        </section>
+
+    </div>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
