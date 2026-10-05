@@ -1,9 +1,14 @@
 let currentMode = "career";
 
 
+// ======================================================
+// SWITCH MODE
+// ======================================================
+
 function switchMode(mode) {
 
     currentMode = mode;
+
 
     const careerButton =
         document.getElementById(
@@ -77,6 +82,10 @@ function switchMode(mode) {
 }
 
 
+// ======================================================
+// GET USER SKILLS
+// ======================================================
+
 function getSkills() {
 
     const skillsText =
@@ -84,17 +93,29 @@ function getSkills() {
             "skills"
         ).value;
 
+
     return skillsText
         .split(",")
-        .map(skill => skill.trim())
-        .filter(skill => skill.length > 0);
+        .map(
+            skill =>
+                skill.trim()
+        )
+        .filter(
+            skill =>
+                skill.length > 0
+        );
 }
 
+
+// ======================================================
+// MAIN ANALYZE BUTTON
+// ======================================================
 
 async function analyzeSkills() {
 
     const skills =
         getSkills();
+
 
     if (skills.length === 0) {
 
@@ -108,9 +129,9 @@ async function analyzeSkills() {
 
     hideError();
 
-    showLoading();
-
     clearResults();
+
+    showLoading();
 
 
     try {
@@ -130,7 +151,9 @@ async function analyzeSkills() {
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
 
         showError(
             "Unable to connect to SkillGap AI API. Make sure the FastAPI backend is running."
@@ -143,7 +166,13 @@ async function analyzeSkills() {
 }
 
 
-async function discoverCareers(skills) {
+// ======================================================
+// CAREER DISCOVERY API
+// ======================================================
+
+async function discoverCareers(
+    skills
+) {
 
     const response =
         await fetch(
@@ -182,12 +211,20 @@ async function discoverCareers(skills) {
 }
 
 
-async function matchJobs(skills) {
+// ======================================================
+// JOB MATCH API
+// ======================================================
+
+async function matchJobs(
+    skills
+) {
 
     const targetRole =
         document.getElementById(
             "targetRole"
-        ).value.trim();
+        )
+        .value
+        .trim();
 
 
     const response =
@@ -228,7 +265,13 @@ async function matchJobs(skills) {
 }
 
 
-function renderCareerResults(data) {
+// ======================================================
+// RENDER CAREER RESULTS
+// ======================================================
+
+function renderCareerResults(
+    data
+) {
 
     const section =
         document.getElementById(
@@ -249,6 +292,7 @@ function renderCareerResults(data) {
     container.innerHTML =
         "";
 
+
     count.textContent =
         `${data.total_results} careers found`;
 
@@ -260,7 +304,7 @@ function renderCareerResults(data) {
 
         container.innerHTML = `
             <div class="career-card">
-                No suitable careers were found for the entered skills.
+                No suitable careers were found.
             </div>
         `;
 
@@ -280,6 +324,7 @@ function renderCareerResults(data) {
                     "article"
                 );
 
+
             card.className =
                 "career-card";
 
@@ -291,20 +336,25 @@ function renderCareerResults(data) {
                 .toLowerCase();
 
 
-            const matchedSkills =
-                [
-                    ...(
-                        career
-                        .matched_essential_skills
-                        || []
-                    ),
+            const matchedSkills = [
+                ...(
+                    career
+                    .matched_essential_skills
+                    || []
+                ),
 
-                    ...(
-                        career
-                        .matched_optional_skills
-                        || []
-                    )
-                ];
+                ...(
+                    career
+                    .matched_optional_skills
+                    || []
+                )
+            ];
+
+
+            const safeOccupation =
+                escapeHTML(
+                    career.occupation
+                );
 
 
             card.innerHTML = `
@@ -312,14 +362,13 @@ function renderCareerResults(data) {
                 <div class="card-top">
 
                     <div>
+
                         <span class="eyebrow">
                             MATCH #${index + 1}
                         </span>
 
                         <h3>
-                            ${escapeHTML(
-                                career.occupation
-                            )}
+                            ${safeOccupation}
                         </h3>
 
                         <span
@@ -327,28 +376,34 @@ function renderCareerResults(data) {
                         >
                             ${escapeHTML(
                                 career.confidence
-                            )} Confidence
+                            )}
+                            Confidence
                         </span>
+
                     </div>
 
 
                     <div class="fit-score">
+
                         ${
                             career
                             .career_fit_score
                         }/100
+
                     </div>
 
                 </div>
 
 
                 <p class="description">
+
                     ${escapeHTML(
                         shortenText(
                             career.description,
                             220
                         )
                     )}
+
                 </p>
 
 
@@ -374,6 +429,7 @@ function renderCareerResults(data) {
 
                         <div
                             class="progress-fill"
+
                             style="
                                 width:
                                 ${
@@ -403,7 +459,7 @@ function renderCareerResults(data) {
                             renderTags(
                                 matchedSkills,
                                 "match",
-                                "No major skills matched yet."
+                                "No direct skill matches."
                             )
                         }
 
@@ -446,6 +502,25 @@ function renderCareerResults(data) {
                     )}
 
                 </div>
+
+
+                <button
+                    class="impact-button"
+
+                    data-occupation="${safeOccupation}"
+
+                    data-index="${index}"
+
+                    onclick="showSkillImpactFromButton(this)"
+                >
+                    See Skill Impact
+                </button>
+
+
+                <div
+                    id="impact-${index}"
+                    class="impact-panel hidden"
+                ></div>
             `;
 
 
@@ -462,17 +537,344 @@ function renderCareerResults(data) {
 }
 
 
-function renderJobResults(data) {
+// ======================================================
+// SKILL IMPACT BUTTON WRAPPER
+// ======================================================
+
+function showSkillImpactFromButton(
+    button
+) {
+
+    const occupation =
+        button.dataset.occupation;
+
+    const index =
+        button.dataset.index;
+
+
+    showSkillImpact(
+        occupation,
+        index,
+        button
+    );
+}
+
+
+// ======================================================
+// SKILL IMPACT API
+// ======================================================
+
+async function showSkillImpact(
+    occupation,
+    index,
+    button
+) {
+
+    const skills =
+        getSkills();
+
+
+    const panel =
+        document.getElementById(
+            `impact-${index}`
+        );
+
+
+    if (!panel) {
+        return;
+    }
+
+
+    // Close if already open and loaded
+    if (
+        !panel.classList.contains(
+            "hidden"
+        )
+        &&
+        panel.dataset.loaded
+        === "true"
+    ) {
+
+        panel.classList.add(
+            "hidden"
+        );
+
+        button.textContent =
+            "See Skill Impact";
+
+        return;
+    }
+
+
+    panel.classList.remove(
+        "hidden"
+    );
+
+
+    panel.innerHTML = `
+        <div class="impact-loading">
+            <div class="mini-spinner"></div>
+
+            <span>
+                Calculating highest-impact skills...
+            </span>
+        </div>
+    `;
+
+
+    button.disabled =
+        true;
+
+    button.textContent =
+        "Calculating...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                "http://127.0.0.1:8000/skill-impact",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            skills:
+                                skills,
+
+                            occupation:
+                                occupation,
+
+                            limit:
+                                5
+                        })
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Skill impact request failed."
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (data.error) {
+
+            panel.innerHTML = `
+                <p class="impact-error">
+                    ${escapeHTML(
+                        data.error
+                    )}
+                </p>
+            `;
+
+            return;
+        }
+
+
+        let html = `
+
+            <div class="impact-header">
+
+                <div>
+
+                    <span class="eyebrow">
+                        SKILL IMPACT SIMULATOR
+                    </span>
+
+                    <h4>
+                        What should you learn next?
+                    </h4>
+
+                </div>
+
+
+                <div class="current-impact-score">
+
+                    <span>
+                        Current Fit
+                    </span>
+
+                    <strong>
+                        ${data.current_score}/100
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <p class="impact-intro">
+
+                These skills are ranked by how much
+                they could improve your fit for
+                <strong>
+                    ${escapeHTML(
+                        data.occupation
+                    )}
+                </strong>.
+
+            </p>
+        `;
+
+
+        if (
+            !data.best_skills_to_learn ||
+            data.best_skills_to_learn.length === 0
+        ) {
+
+            html += `
+
+                <div class="impact-empty">
+
+                    No major skill improvements
+                    were identified.
+
+                </div>
+            `;
+
+        } else {
+
+            html += `
+                <div class="impact-list">
+            `;
+
+
+            data.best_skills_to_learn.forEach(
+                (item, skillIndex) => {
+
+                    html += `
+
+                        <div class="impact-item">
+
+                            <div class="impact-rank">
+                                ${skillIndex + 1}
+                            </div>
+
+
+                            <div class="impact-skill-info">
+
+                                <strong>
+                                    ${escapeHTML(
+                                        item.skill
+                                    )}
+                                </strong>
+
+                                <div class="impact-score-change">
+
+                                    <span>
+                                        ${item.current_score}
+                                    </span>
+
+                                    <span>
+                                        →
+                                    </span>
+
+                                    <span>
+                                        ${item.new_score}
+                                    </span>
+
+                                </div>
+
+                                <small>
+                                    New confidence:
+                                    ${escapeHTML(
+                                        item.new_confidence
+                                    )}
+                                </small>
+
+                            </div>
+
+
+                            <div class="impact-gain">
+
+                                +${item.improvement}
+
+                            </div>
+
+                        </div>
+                    `;
+                }
+            );
+
+
+            html += `
+                </div>
+            `;
+        }
+
+
+        panel.innerHTML =
+            html;
+
+
+        panel.dataset.loaded =
+            "true";
+
+
+        button.textContent =
+            "Hide Skill Impact";
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        panel.innerHTML = `
+
+            <p class="impact-error">
+
+                Unable to calculate skill impact.
+                Make sure the backend is running.
+
+            </p>
+        `;
+
+
+        button.textContent =
+            "Try Skill Impact Again";
+
+    } finally {
+
+        button.disabled =
+            false;
+    }
+}
+
+
+// ======================================================
+// RENDER JOB RESULTS
+// ======================================================
+
+function renderJobResults(
+    data
+) {
 
     const section =
         document.getElementById(
             "jobResultsSection"
         );
 
+
     const jobsContainer =
         document.getElementById(
             "jobResults"
         );
+
 
     const learningContainer =
         document.getElementById(
@@ -482,6 +884,7 @@ function renderJobResults(data) {
 
     jobsContainer.innerHTML =
         "";
+
 
     learningContainer.innerHTML =
         "";
@@ -508,6 +911,7 @@ function renderJobResults(data) {
                         "article"
                     );
 
+
                 card.className =
                     "job-card";
 
@@ -515,8 +919,12 @@ function renderJobResults(data) {
                 card.innerHTML = `
 
                     <span class="eyebrow">
-                        JOB MATCH #${index + 1}
+
+                        JOB MATCH
+                        #${index + 1}
+
                     </span>
+
 
                     <h3>
                         ${escapeHTML(
@@ -524,10 +932,11 @@ function renderJobResults(data) {
                         )}
                     </h3>
 
+
                     <div class="job-score">
-                        ${
-                            job.match_score
-                        }%
+
+                        ${job.match_score}%
+
                     </div>
 
 
@@ -574,16 +983,18 @@ function renderJobResults(data) {
                 `;
 
 
-                jobsContainer
-                    .appendChild(
-                        card
-                    );
+                jobsContainer.appendChild(
+                    card
+                );
             }
         );
     }
 
 
-    if (data.learn_next) {
+    if (
+        data.learn_next &&
+        data.learn_next.length > 0
+    ) {
 
         data.learn_next.forEach(
             (item, index) => {
@@ -593,6 +1004,7 @@ function renderJobResults(data) {
                         "div"
                     );
 
+
                 card.className =
                     "learning-card";
 
@@ -600,26 +1012,29 @@ function renderJobResults(data) {
                 card.innerHTML = `
 
                     <strong>
+
                         ${index + 1}.
+
                         ${escapeHTML(
                             item.skill
                         )}
+
                     </strong>
 
+
                     <span>
+
                         Required by
-                        ${
-                            item.frequency
-                        }
+                        ${item.frequency}
                         top job(s)
+
                     </span>
                 `;
 
 
-                learningContainer
-                    .appendChild(
-                        card
-                    );
+                learningContainer.appendChild(
+                    card
+                );
             }
         );
     }
@@ -630,6 +1045,10 @@ function renderJobResults(data) {
     );
 }
 
+
+// ======================================================
+// TAG RENDERER
+// ======================================================
 
 function renderTags(
     skills,
@@ -653,15 +1072,21 @@ function renderTags(
 
 
     return skills
-        .slice(0, 8)
+        .slice(
+            0,
+            8
+        )
         .map(
             skill => `
+
                 <span
                     class="tag ${className}"
                 >
+
                     ${escapeHTML(
                         skill
                     )}
+
                 </span>
             `
         )
@@ -669,22 +1094,30 @@ function renderTags(
 }
 
 
+// ======================================================
+// SHORTEN TEXT
+// ======================================================
+
 function shortenText(
     text,
     maxLength
 ) {
 
     if (!text) {
+
         return (
             "No description available."
         );
     }
 
+
     if (
         text.length <= maxLength
     ) {
+
         return text;
     }
+
 
     return (
         text.slice(
@@ -697,17 +1130,26 @@ function shortenText(
 }
 
 
-function escapeHTML(value) {
+// ======================================================
+// ESCAPE HTML
+// ======================================================
+
+function escapeHTML(
+    value
+) {
 
     if (
         value === null ||
         value === undefined
     ) {
+
         return "";
     }
 
 
-    return String(value)
+    return String(
+        value
+    )
         .replaceAll(
             "&",
             "&amp;"
@@ -730,6 +1172,10 @@ function escapeHTML(value) {
         );
 }
 
+
+// ======================================================
+// LOADING
+// ======================================================
 
 function showLoading() {
 
@@ -757,15 +1203,23 @@ function hideLoading() {
 }
 
 
-function showError(message) {
+// ======================================================
+// ERRORS
+// ======================================================
+
+function showError(
+    message
+) {
 
     const errorBox =
         document.getElementById(
             "errorBox"
         );
 
+
     errorBox.textContent =
         message;
+
 
     errorBox.classList.remove(
         "hidden"
@@ -785,6 +1239,10 @@ function hideError() {
         );
 }
 
+
+// ======================================================
+// CLEAR RESULTS
+// ======================================================
 
 function clearResults() {
 

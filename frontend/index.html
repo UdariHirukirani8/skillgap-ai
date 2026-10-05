@@ -15,20 +15,27 @@
     <div class="app-shell">
 
         <header class="topbar">
+
             <div>
                 <h1>SkillGap AI</h1>
+
                 <p>
                     AI-Powered Career Intelligence Platform
                 </p>
             </div>
 
             <div class="status-badge">
-                Career Intelligence v2
+                Career Intelligence
             </div>
+
         </header>
 
 
         <main class="container">
+
+            <!-- ====================================== -->
+            <!-- HERO -->
+            <!-- ====================================== -->
 
             <section class="hero">
 
@@ -42,11 +49,16 @@
 
                 <p>
                     Analyze your skills, discover suitable careers,
-                    identify skill gaps, and plan what to learn next.
+                    identify skill gaps, and find what you should
+                    learn next.
                 </p>
 
             </section>
 
+
+            <!-- ====================================== -->
+            <!-- MODE SWITCH -->
+            <!-- ====================================== -->
 
             <section class="mode-switch">
 
@@ -69,9 +81,14 @@
             </section>
 
 
+            <!-- ====================================== -->
+            <!-- INPUT -->
+            <!-- ====================================== -->
+
             <section class="input-card">
 
                 <div class="form-group">
+
                     <label for="skills">
                         Your Skills
                     </label>
@@ -80,6 +97,7 @@
                         id="skills"
                         placeholder="Example: Python, SQL, Statistics, Data Analysis, Communication, Problem Solving"
                     ></textarea>
+
                 </div>
 
 
@@ -87,6 +105,7 @@
                     id="targetRoleGroup"
                     class="form-group hidden"
                 >
+
                     <label for="targetRole">
                         Target Job Role
                     </label>
@@ -96,6 +115,7 @@
                         type="text"
                         placeholder="Example: data analyst"
                     >
+
                 </div>
 
 
@@ -119,23 +139,37 @@
             </section>
 
 
+            <!-- ====================================== -->
+            <!-- LOADING -->
+            <!-- ====================================== -->
+
             <div
                 id="loading"
                 class="loading hidden"
             >
+
                 <div class="spinner"></div>
 
                 <p>
                     Analyzing your skills...
                 </p>
+
             </div>
 
+
+            <!-- ====================================== -->
+            <!-- ERROR -->
+            <!-- ====================================== -->
 
             <div
                 id="errorBox"
                 class="error-box hidden"
             ></div>
 
+
+            <!-- ====================================== -->
+            <!-- CAREER RESULTS -->
+            <!-- ====================================== -->
 
             <section
                 id="careerResultsSection"
@@ -145,6 +179,7 @@
                 <div class="section-heading">
 
                     <div>
+
                         <span class="eyebrow">
                             YOUR RESULTS
                         </span>
@@ -152,6 +187,7 @@
                         <h2>
                             Career Matches
                         </h2>
+
                     </div>
 
                     <div
@@ -170,6 +206,10 @@
             </section>
 
 
+            <!-- ====================================== -->
+            <!-- JOB RESULTS -->
+            <!-- ====================================== -->
+
             <section
                 id="jobResultsSection"
                 class="results-section hidden"
@@ -178,6 +218,7 @@
                 <div class="section-heading">
 
                     <div>
+
                         <span class="eyebrow">
                             JOB ANALYSIS
                         </span>
@@ -185,6 +226,7 @@
                         <h2>
                             Top Job Matches
                         </h2>
+
                     </div>
 
                 </div>
@@ -201,6 +243,7 @@
                     <div class="section-heading">
 
                         <div>
+
                             <span class="eyebrow">
                                 SKILL DEVELOPMENT
                             </span>
@@ -208,6 +251,7 @@
                             <h2>
                                 Skills To Learn Next
                             </h2>
+
                         </div>
 
                     </div>

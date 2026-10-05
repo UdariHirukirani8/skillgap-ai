@@ -19,7 +19,7 @@ sys.path.append(str(SRC_PATH))
 
 
 # ==================================================
-# IMPORT PROJECT MODULES
+# PROJECT IMPORTS
 # ==================================================
 
 from skill_matcher import (
@@ -29,6 +29,8 @@ from skill_matcher import (
 
 from career_discovery import discover_careers
 
+from skill_impact import rank_skill_impacts
+
 
 # ==================================================
 # FASTAPI APP
@@ -37,10 +39,11 @@ from career_discovery import discover_careers
 app = FastAPI(
     title="SkillGap AI API",
     description=(
-        "Career intelligence, skill-gap analysis, "
-        "job recommendation, and career discovery API."
+        "AI-powered career intelligence, "
+        "job recommendation, skill-gap analysis, "
+        "career discovery, and skill impact simulation."
     ),
-    version="2.0.0"
+    version="2.1.0"
 )
 
 
@@ -53,7 +56,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
 
@@ -87,6 +90,12 @@ class CareerDiscoveryRequest(BaseModel):
     limit: int = 10
 
 
+class SkillImpactRequest(BaseModel):
+    skills: list[str]
+    occupation: str
+    limit: int = 5
+
+
 # ==================================================
 # HOME
 # ==================================================
@@ -96,7 +105,7 @@ def home():
 
     return {
         "message": "SkillGap AI API is running",
-        "version": "2.0.0"
+        "version": "2.1.0"
     }
 
 
@@ -114,7 +123,7 @@ def health():
 
 
 # ==================================================
-# JOB RECOMMENDATION ENDPOINT
+# JOB RECOMMENDATION
 # ==================================================
 
 @app.post("/recommend")
@@ -131,14 +140,9 @@ def recommend_jobs(
     )
 
 
-    # ----------------------------------------------
-    # FILTER IT JOBS
-    #
-    # This endpoint is the original MVP job
-    # recommendation engine.
-    # Universal career discovery is handled by
-    # /discover-careers using ESCO.
-    # ----------------------------------------------
+    # --------------------------------------------------
+    # ORIGINAL JOB DATASET
+    # --------------------------------------------------
 
     jobs = df[
         df["category"]
@@ -146,9 +150,9 @@ def recommend_jobs(
     ].copy()
 
 
-    # ----------------------------------------------
-    # FILTER BY TARGET ROLE
-    # ----------------------------------------------
+    # --------------------------------------------------
+    # FILTER TARGET ROLE
+    # --------------------------------------------------
 
     if target_role:
 
@@ -165,9 +169,9 @@ def recommend_jobs(
             jobs = filtered_jobs
 
 
-    # ----------------------------------------------
-    # SCORE JOBS
-    # ----------------------------------------------
+    # --------------------------------------------------
+    # CALCULATE JOB MATCH SCORES
+    # --------------------------------------------------
 
     results = []
 
@@ -176,6 +180,7 @@ def recommend_jobs(
         required_skills = job[
             "job_skill_set"
         ]
+
 
         if isinstance(
             required_skills,
@@ -202,15 +207,12 @@ def recommend_jobs(
             required_skills,
             (list, tuple, set)
         ):
-
             continue
 
 
-        match_result = (
-            calculate_skill_match(
-                user_skills,
-                required_skills
-            )
+        match_result = calculate_skill_match(
+            user_skills,
+            required_skills
         )
 
 
@@ -235,15 +237,14 @@ def recommend_jobs(
         })
 
 
-    # ----------------------------------------------
+    # --------------------------------------------------
     # SORT JOBS
-    # ----------------------------------------------
+    # --------------------------------------------------
 
     results = sorted(
         results,
-        key=lambda item: item[
-            "match_score"
-        ],
+        key=lambda item:
+            item["match_score"],
         reverse=True
     )
 
@@ -257,16 +258,16 @@ def recommend_jobs(
 
     if positive_results:
         top_jobs = positive_results[:5]
-
     else:
         top_jobs = results[:5]
 
 
-    # ----------------------------------------------
-    # LEARNING RECOMMENDATIONS
-    # ----------------------------------------------
+    # --------------------------------------------------
+    # LEARN NEXT
+    # --------------------------------------------------
 
     skill_frequency = {}
+
 
     for job in top_jobs:
 
@@ -293,7 +294,8 @@ def recommend_jobs(
 
     learning_skills = sorted(
         skill_frequency.items(),
-        key=lambda item: item[1],
+        key=lambda item:
+            item[1],
         reverse=True
     )[:5]
 
@@ -309,12 +311,9 @@ def recommend_jobs(
     ]
 
 
-    # ----------------------------------------------
-    # RETURN JOB RESULT
-    # ----------------------------------------------
-
     return {
-        "mode": "job_recommendation",
+        "mode":
+            "job_recommendation",
 
         "target_role":
             request.target_role,
@@ -331,7 +330,7 @@ def recommend_jobs(
 
 
 # ==================================================
-# UNIVERSAL CAREER DISCOVERY ENDPOINT
+# UNIVERSAL CAREER DISCOVERY
 # ==================================================
 
 @app.post("/discover-careers")
@@ -339,7 +338,6 @@ def discover_career_options(
     request: CareerDiscoveryRequest
 ):
 
-    # Prevent extreme values
     limit = max(
         1,
         min(
@@ -356,14 +354,45 @@ def discover_career_options(
 
 
     return {
-        "mode": "career_discovery",
+        "mode":
+            "career_discovery",
 
         "user_skills":
             request.skills,
 
         "total_results":
-            len(career_matches),
+            len(
+                career_matches
+            ),
 
         "career_matches":
             career_matches
     }
+
+
+# ==================================================
+# SKILL IMPACT SIMULATOR
+# ==================================================
+
+@app.post("/skill-impact")
+def skill_impact_analysis(
+    request: SkillImpactRequest
+):
+
+    limit = max(
+        1,
+        min(
+            request.limit,
+            10
+        )
+    )
+
+
+    result = rank_skill_impacts(
+        request.skills,
+        request.occupation,
+        limit=limit
+    )
+
+
+    return result

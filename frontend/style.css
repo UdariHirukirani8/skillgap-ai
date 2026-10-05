@@ -2,26 +2,40 @@
     box-sizing: border-box;
 }
 
+
 :root {
+
     --bg: #070b12;
+
     --panel: #101721;
+
     --panel-soft: #151e2a;
+
     --border: #263244;
 
     --text: #f4f7fb;
+
     --muted: #8f9bad;
 
     --primary: #6c63ff;
-    --primary-hover: #7e76ff;
+
+    --primary-hover: #817aff;
 
     --green: #32d583;
+
     --red: #ff6b6b;
+
     --yellow: #f5b942;
+
     --blue: #4ea8ff;
 }
 
+
 body {
+
     margin: 0;
+
+    min-height: 100vh;
 
     font-family:
         Inter,
@@ -32,31 +46,46 @@ body {
         radial-gradient(
             circle at top,
             #11182a 0%,
-            var(--bg) 45%
+            #070b12 48%
         );
 
-    color: var(--text);
-
-    min-height: 100vh;
+    color:
+        var(--text);
 }
 
 
 .app-shell {
+
     min-height: 100vh;
 }
 
 
+/* ======================================================
+   TOP BAR
+====================================================== */
+
 .topbar {
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 10;
+
     display: flex;
-    justify-content: space-between;
+
     align-items: center;
+
+    justify-content:
+        space-between;
 
     padding:
         22px
         6%;
 
     border-bottom:
-        1px solid rgba(
+        1px solid
+        rgba(
             255,
             255,
             255,
@@ -68,50 +97,57 @@ body {
             7,
             11,
             18,
-            0.8
+            0.88
         );
 
     backdrop-filter:
-        blur(12px);
-
-    position: sticky;
-    top: 0;
-
-    z-index: 10;
+        blur(16px);
 }
 
 
 .topbar h1 {
+
     margin: 0;
 
-    font-size: 24px;
+    font-size: 25px;
 }
 
 
 .topbar p {
+
     margin:
         5px
         0
         0;
 
-    color: var(--muted);
+    color:
+        var(--muted);
 
-    font-size: 13px;
+    font-size:
+        13px;
 }
 
 
 .status-badge {
+
     padding:
         8px
         13px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        rgba(
+            50,
+            213,
+            131,
+            0.28
+        );
 
     border-radius:
         999px;
 
-    color: var(--green);
+    color:
+        var(--green);
 
     background:
         rgba(
@@ -126,8 +162,14 @@ body {
 }
 
 
+/* ======================================================
+   CONTAINER
+====================================================== */
+
 .container {
+
     width: 90%;
+
     max-width: 1180px;
 
     margin:
@@ -140,9 +182,14 @@ body {
 }
 
 
+/* ======================================================
+   HERO
+====================================================== */
+
 .hero {
+
     max-width:
-        780px;
+        820px;
 
     margin-bottom:
         40px;
@@ -150,28 +197,33 @@ body {
 
 
 .eyebrow {
-    display: inline-block;
 
-    font-size:
-        12px;
+    display:
+        inline-block;
 
-    letter-spacing:
-        1.4px;
-
-    font-weight:
-        700;
+    margin-bottom:
+        10px;
 
     color:
         var(--primary);
 
-    margin-bottom:
-        10px;
+    font-size:
+        12px;
+
+    font-weight:
+        700;
+
+    letter-spacing:
+        1.4px;
 }
 
 
 .hero h2 {
-    margin:
-        0;
+
+    margin: 0;
+
+    max-width:
+        920px;
 
     font-size:
         clamp(
@@ -182,13 +234,17 @@ body {
 
     line-height:
         1.05;
-
-    max-width:
-        900px;
 }
 
 
 .hero p {
+
+    max-width:
+        720px;
+
+    margin-top:
+        22px;
+
     color:
         var(--muted);
 
@@ -197,37 +253,38 @@ body {
 
     line-height:
         1.7;
-
-    max-width:
-        720px;
-
-    margin-top:
-        22px;
 }
 
 
+/* ======================================================
+   MODE SWITCH
+====================================================== */
+
 .mode-switch {
+
     display:
         inline-flex;
+
+    margin-bottom:
+        25px;
 
     padding:
         5px;
 
-    background:
-        var(--panel);
-
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
     border-radius:
         12px;
 
-    margin-bottom:
-        25px;
+    background:
+        var(--panel);
 }
 
 
 .mode-btn {
+
     padding:
         11px
         20px;
@@ -256,6 +313,7 @@ body {
 
 
 .mode-btn.active {
+
     background:
         var(--primary);
 
@@ -264,22 +322,28 @@ body {
 }
 
 
+/* ======================================================
+   INPUT CARD
+====================================================== */
+
 .input-card {
+
+    padding:
+        28px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius:
+        18px;
+
     background:
         linear-gradient(
             145deg,
             #111923,
             #0d131d
         );
-
-    border:
-        1px solid var(--border);
-
-    border-radius:
-        18px;
-
-    padding:
-        28px;
 
     box-shadow:
         0
@@ -295,33 +359,43 @@ body {
 
 
 .form-group {
+
     margin-bottom:
         22px;
 }
 
 
 .form-group label {
+
     display:
         block;
 
-    font-weight:
-        600;
-
     margin-bottom:
         9px;
+
+    font-weight:
+        600;
 }
 
 
 textarea,
 input {
-    width:
-        100%;
+
+    width: 100%;
+
+    padding:
+        14px
+        16px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
     border-radius:
         12px;
+
+    outline:
+        none;
 
     background:
         #090e15;
@@ -329,15 +403,8 @@ input {
     color:
         var(--text);
 
-    padding:
-        14px
-        16px;
-
     font-size:
         15px;
-
-    outline:
-        none;
 
     transition:
         0.2s;
@@ -345,6 +412,7 @@ input {
 
 
 textarea {
+
     min-height:
         120px;
 
@@ -355,6 +423,7 @@ textarea {
 
 textarea:focus,
 input:focus {
+
     border-color:
         var(--primary);
 
@@ -373,11 +442,10 @@ input:focus {
 
 
 .form-footer {
-    display:
-        flex;
 
-    align-items:
-        center;
+    display: flex;
+
+    align-items: center;
 
     justify-content:
         space-between;
@@ -385,47 +453,46 @@ input:focus {
     gap:
         20px;
 
+    padding-top:
+        20px;
+
     border-top:
-        1px solid rgba(
+        1px solid
+        rgba(
             255,
             255,
             255,
             0.06
         );
-
-    padding-top:
-        20px;
 }
 
 
 .form-footer p {
+
+    max-width:
+        620px;
+
+    margin: 0;
+
     color:
         var(--muted);
 
     font-size:
         14px;
-
-    margin:
-        0;
-
-    max-width:
-        620px;
 }
 
 
 .primary-button {
-    border:
-        none;
-
-    border-radius:
-        11px;
 
     padding:
         14px
         24px;
 
-    color:
-        white;
+    border:
+        none;
+
+    border-radius:
+        11px;
 
     background:
         linear-gradient(
@@ -433,6 +500,9 @@ input:focus {
             var(--primary),
             #8c5cff
         );
+
+    color:
+        white;
 
     font-size:
         15px;
@@ -452,6 +522,7 @@ input:focus {
 
 
 .primary-button:hover {
+
     transform:
         translateY(-1px);
 
@@ -468,10 +539,11 @@ input:focus {
 }
 
 
+/* ======================================================
+   LOADING
+====================================================== */
+
 .loading {
-    margin:
-        40px
-        0;
 
     display:
         flex;
@@ -482,12 +554,17 @@ input:focus {
     gap:
         14px;
 
+    margin:
+        40px
+        0;
+
     color:
         var(--muted);
 }
 
 
 .spinner {
+
     width:
         24px;
 
@@ -495,7 +572,8 @@ input:focus {
         24px;
 
     border:
-        3px solid #252e3c;
+        3px solid
+        #252e3c;
 
     border-top-color:
         var(--primary);
@@ -504,28 +582,61 @@ input:focus {
         50%;
 
     animation:
-        spin 0.8s
-        linear infinite;
+        spin
+        0.8s
+        linear
+        infinite;
+}
+
+
+.mini-spinner {
+
+    width:
+        18px;
+
+    height:
+        18px;
+
+    border:
+        2px solid
+        #263244;
+
+    border-top-color:
+        var(--primary);
+
+    border-radius:
+        50%;
+
+    animation:
+        spin
+        0.7s
+        linear
+        infinite;
 }
 
 
 @keyframes spin {
+
     to {
         transform:
-            rotate(360deg);
+            rotate(
+                360deg
+            );
     }
 }
 
 
+/* ======================================================
+   ERRORS
+====================================================== */
+
 .error-box {
+
     margin-top:
         25px;
 
     padding:
         15px;
-
-    border-radius:
-        12px;
 
     border:
         1px solid
@@ -535,6 +646,9 @@ input:focus {
             107,
             0.4
         );
+
+    border-radius:
+        12px;
 
     background:
         rgba(
@@ -549,13 +663,19 @@ input:focus {
 }
 
 
+/* ======================================================
+   RESULTS
+====================================================== */
+
 .results-section {
+
     margin-top:
         60px;
 }
 
 
 .section-heading {
+
     display:
         flex;
 
@@ -571,8 +691,8 @@ input:focus {
 
 
 .section-heading h2 {
-    margin:
-        0;
+
+    margin: 0;
 
     font-size:
         30px;
@@ -580,6 +700,7 @@ input:focus {
 
 
 .result-count {
+
     color:
         var(--muted);
 
@@ -590,6 +711,7 @@ input:focus {
 
 .career-grid,
 .job-grid {
+
     display:
         grid;
 
@@ -607,23 +729,29 @@ input:focus {
 }
 
 
+/* ======================================================
+   CAREER CARD
+====================================================== */
+
 .career-card,
 .job-card {
+
+    padding:
+        22px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius:
+        16px;
+
     background:
         linear-gradient(
             145deg,
             #111922,
             #0d141c
         );
-
-    border:
-        1px solid var(--border);
-
-    border-radius:
-        16px;
-
-    padding:
-        22px;
 
     transition:
         0.2s;
@@ -632,8 +760,11 @@ input:focus {
 
 .career-card:hover,
 .job-card:hover {
+
     transform:
-        translateY(-3px);
+        translateY(
+            -3px
+        );
 
     border-color:
         #3a4d67;
@@ -641,14 +772,15 @@ input:focus {
 
 
 .card-top {
+
     display:
         flex;
 
-    justify-content:
-        space-between;
-
     align-items:
         start;
+
+    justify-content:
+        space-between;
 
     gap:
         20px;
@@ -656,8 +788,8 @@ input:focus {
 
 
 .card-top h3 {
-    margin:
-        0;
+
+    margin: 0;
 
     font-size:
         20px;
@@ -668,11 +800,9 @@ input:focus {
 
 
 .fit-score {
-    min-width:
-        80px;
 
-    text-align:
-        center;
+    min-width:
+        88px;
 
     padding:
         9px
@@ -694,10 +824,14 @@ input:focus {
 
     font-weight:
         700;
+
+    text-align:
+        center;
 }
 
 
 .confidence {
+
     display:
         inline-block;
 
@@ -720,6 +854,7 @@ input:focus {
 
 
 .confidence.high {
+
     color:
         var(--green);
 
@@ -734,6 +869,7 @@ input:focus {
 
 
 .confidence.medium {
+
     color:
         var(--yellow);
 
@@ -748,6 +884,7 @@ input:focus {
 
 
 .confidence.low {
+
     color:
         #ff8b8b;
 
@@ -762,6 +899,11 @@ input:focus {
 
 
 .description {
+
+    margin:
+        16px
+        0;
+
     color:
         var(--muted);
 
@@ -770,20 +912,22 @@ input:focus {
 
     line-height:
         1.6;
-
-    margin:
-        16px
-        0;
 }
 
 
+/* ======================================================
+   PROGRESS
+====================================================== */
+
 .progress-row {
+
     margin-top:
         18px;
 }
 
 
 .progress-label {
+
     display:
         flex;
 
@@ -793,32 +937,37 @@ input:focus {
     margin-bottom:
         8px;
 
-    font-size:
-        13px;
-
     color:
         var(--muted);
+
+    font-size:
+        13px;
 }
 
 
 .progress-track {
+
     height:
         8px;
 
-    background:
-        #080d13;
+    overflow:
+        hidden;
 
     border-radius:
         999px;
 
-    overflow:
-        hidden;
+    background:
+        #080d13;
 }
 
 
 .progress-fill {
+
     height:
         100%;
+
+    border-radius:
+        inherit;
 
     background:
         linear-gradient(
@@ -826,33 +975,37 @@ input:focus {
             var(--primary),
             #9e73ff
         );
-
-    border-radius:
-        inherit;
 }
 
 
+/* ======================================================
+   SKILL TAGS
+====================================================== */
+
 .card-section {
+
     margin-top:
         20px;
 }
 
 
 .card-section h4 {
+
     margin:
         0
         0
         9px;
 
-    font-size:
-        13px;
-
     color:
         #cbd3df;
+
+    font-size:
+        13px;
 }
 
 
 .tag-list {
+
     display:
         flex;
 
@@ -865,9 +1018,14 @@ input:focus {
 
 
 .tag {
+
     padding:
         6px
         9px;
+
+    border:
+        1px solid
+        #263344;
 
     border-radius:
         8px;
@@ -875,20 +1033,15 @@ input:focus {
     background:
         #19222e;
 
-    border:
-        1px solid #263344;
+    color:
+        #dce3ec;
 
     font-size:
         12px;
-
-    color:
-        #dce3ec;
 }
 
 
 .tag.match {
-    color:
-        var(--green);
 
     border-color:
         rgba(
@@ -905,12 +1058,13 @@ input:focus {
             131,
             0.06
         );
+
+    color:
+        var(--green);
 }
 
 
 .tag.gap {
-    color:
-        #ff9696;
 
     border-color:
         rgba(
@@ -927,50 +1081,435 @@ input:focus {
             107,
             0.06
         );
+
+    color:
+        #ff9696;
 }
 
 
+/* ======================================================
+   EXPLANATION
+====================================================== */
+
 .explanation {
+
     margin-top:
         18px;
-
-    border-left:
-        3px solid var(--primary);
 
     padding-left:
         12px;
 
+    border-left:
+        3px solid
+        var(--primary);
+
     color:
         var(--muted);
 
+    font-size:
+        13px;
+
     line-height:
         1.6;
+}
+
+
+/* ======================================================
+   SKILL IMPACT BUTTON
+====================================================== */
+
+.impact-button {
+
+    width:
+        100%;
+
+    margin-top:
+        20px;
+
+    padding:
+        13px
+        16px;
+
+    border:
+        1px solid
+        rgba(
+            108,
+            99,
+            255,
+            0.55
+        );
+
+    border-radius:
+        11px;
+
+    background:
+        rgba(
+            108,
+            99,
+            255,
+            0.09
+        );
+
+    color:
+        #c9c5ff;
+
+    font-size:
+        14px;
+
+    font-weight:
+        700;
+
+    cursor:
+        pointer;
+
+    transition:
+        0.2s;
+}
+
+
+.impact-button:hover {
+
+    background:
+        rgba(
+            108,
+            99,
+            255,
+            0.18
+        );
+
+    transform:
+        translateY(
+            -1px
+        );
+}
+
+
+.impact-button:disabled {
+
+    opacity:
+        0.6;
+
+    cursor:
+        wait;
+}
+
+
+/* ======================================================
+   SKILL IMPACT PANEL
+====================================================== */
+
+.impact-panel {
+
+    margin-top:
+        16px;
+
+    padding:
+        18px;
+
+    border:
+        1px solid
+        var(--border);
+
+    border-radius:
+        14px;
+
+    background:
+        #090f16;
+}
+
+
+.impact-loading {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        10px;
+
+    color:
+        var(--muted);
 
     font-size:
         13px;
 }
 
 
+.impact-header {
+
+    display:
+        flex;
+
+    align-items:
+        start;
+
+    justify-content:
+        space-between;
+
+    gap:
+        15px;
+
+    margin-bottom:
+        10px;
+}
+
+
+.impact-header h4 {
+
+    margin: 0;
+
+    font-size:
+        17px;
+}
+
+
+.current-impact-score {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    align-items:
+        end;
+}
+
+
+.current-impact-score span {
+
+    color:
+        var(--muted);
+
+    font-size:
+        11px;
+}
+
+
+.current-impact-score strong {
+
+    margin-top:
+        3px;
+
+    color:
+        #c8c4ff;
+
+    font-size:
+        17px;
+}
+
+
+.impact-intro {
+
+    margin:
+        0
+        0
+        15px;
+
+    color:
+        var(--muted);
+
+    font-size:
+        12px;
+
+    line-height:
+        1.6;
+}
+
+
+.impact-list {
+
+    display:
+        flex;
+
+    flex-direction:
+        column;
+
+    gap:
+        10px;
+}
+
+
+.impact-item {
+
+    display:
+        grid;
+
+    grid-template-columns:
+        32px
+        1fr
+        auto;
+
+    align-items:
+        center;
+
+    gap:
+        12px;
+
+    padding:
+        12px;
+
+    border:
+        1px solid
+        #202c3a;
+
+    border-radius:
+        11px;
+
+    background:
+        var(--panel-soft);
+}
+
+
+.impact-rank {
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    width:
+        30px;
+
+    height:
+        30px;
+
+    border-radius:
+        9px;
+
+    background:
+        rgba(
+            108,
+            99,
+            255,
+            0.12
+        );
+
+    color:
+        #c8c4ff;
+
+    font-weight:
+        700;
+}
+
+
+.impact-skill-info strong {
+
+    display:
+        block;
+
+    font-size:
+        13px;
+}
+
+
+.impact-skill-info small {
+
+    display:
+        block;
+
+    margin-top:
+        5px;
+
+    color:
+        var(--muted);
+}
+
+
+.impact-score-change {
+
+    display:
+        flex;
+
+    gap:
+        6px;
+
+    margin-top:
+        5px;
+
+    color:
+        var(--muted);
+
+    font-size:
+        12px;
+}
+
+
+.impact-gain {
+
+    color:
+        var(--green);
+
+    font-size:
+        18px;
+
+    font-weight:
+        700;
+}
+
+
+.impact-error {
+
+    color:
+        #ff9292;
+
+    font-size:
+        13px;
+}
+
+
+.impact-empty {
+
+    padding:
+        12px;
+
+    border-radius:
+        10px;
+
+    background:
+        var(--panel-soft);
+
+    color:
+        var(--muted);
+
+    font-size:
+        13px;
+}
+
+
+/* ======================================================
+   JOB MODE
+====================================================== */
+
 .job-score {
+
+    margin:
+        12px
+        0;
+
     font-size:
         26px;
 
     font-weight:
         700;
-
-    margin:
-        12px
-        0;
 }
 
 
 .learning-section {
+
     margin-top:
         55px;
 }
 
 
 .learning-grid {
+
     display:
         grid;
 
@@ -986,21 +1525,24 @@ input:focus {
 
 
 .learning-card {
-    background:
-        var(--panel);
+
+    padding:
+        18px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        var(--border);
 
     border-radius:
         14px;
 
-    padding:
-        18px;
+    background:
+        var(--panel);
 }
 
 
 .learning-card strong {
+
     display:
         block;
 
@@ -1010,6 +1552,7 @@ input:focus {
 
 
 .learning-card span {
+
     color:
         var(--muted);
 
@@ -1018,28 +1561,43 @@ input:focus {
 }
 
 
+/* ======================================================
+   UTILITIES
+====================================================== */
+
 .hidden {
+
     display:
         none !important;
 }
 
 
+/* ======================================================
+   RESPONSIVE
+====================================================== */
+
 @media (
-    max-width: 850px
+    max-width:
+    850px
 ) {
 
     .career-grid,
     .job-grid {
+
         grid-template-columns:
             1fr;
     }
+
 
     .learning-grid {
+
         grid-template-columns:
             1fr;
     }
 
+
     .form-footer {
+
         flex-direction:
             column;
 
@@ -1047,19 +1605,39 @@ input:focus {
             stretch;
     }
 
+
     .primary-button {
+
         width:
             100%;
     }
 
+
     .topbar {
+
         padding:
             18px
             5%;
     }
 
+
     .status-badge {
+
         display:
             none;
+    }
+
+
+    .impact-header {
+
+        flex-direction:
+            column;
+    }
+
+
+    .current-impact-score {
+
+        align-items:
+            start;
     }
 }
