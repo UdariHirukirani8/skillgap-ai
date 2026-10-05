@@ -8,9 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 
-# --------------------------------------------------
-# Allow backend to import files from src/
-# --------------------------------------------------
+# ==================================================
+# PROJECT PATHS
+# ==================================================
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SRC_PATH = PROJECT_ROOT / "src"
@@ -18,24 +18,35 @@ SRC_PATH = PROJECT_ROOT / "src"
 sys.path.append(str(SRC_PATH))
 
 
+# ==================================================
+# IMPORT PROJECT MODULES
+# ==================================================
+
 from skill_matcher import (
     calculate_skill_match,
     normalize_skill
 )
 
+from career_discovery import discover_careers
 
-# --------------------------------------------------
-# CREATE FASTAPI APP
-# --------------------------------------------------
+
+# ==================================================
+# FASTAPI APP
+# ==================================================
 
 app = FastAPI(
     title="SkillGap AI API",
     description=(
-        "AI-powered job skill matching and "
-        "career recommendation API."
+        "Career intelligence, skill-gap analysis, "
+        "job recommendation, and career discovery API."
     ),
-    version="1.0.0"
+    version="2.0.0"
 )
+
+
+# ==================================================
+# CORS
+# ==================================================
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,55 +56,66 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --------------------------------------------------
-# LOAD DATASET ONCE
-# --------------------------------------------------
 
-DATA_PATH = (
+# ==================================================
+# LOAD EXISTING JOB DATASET
+# ==================================================
+
+JOB_DATA_PATH = (
     PROJECT_ROOT
     / "data"
     / "raw"
     / "train-00000-of-00001.parquet"
 )
 
-df = pd.read_parquet(DATA_PATH)
+df = pd.read_parquet(
+    JOB_DATA_PATH
+)
 
 
-# --------------------------------------------------
-# REQUEST MODEL
-# --------------------------------------------------
+# ==================================================
+# REQUEST MODELS
+# ==================================================
 
 class RecommendationRequest(BaseModel):
     skills: list[str]
     target_role: str = ""
 
 
-# --------------------------------------------------
-# HOME ENDPOINT
-# --------------------------------------------------
+class CareerDiscoveryRequest(BaseModel):
+    skills: list[str]
+    limit: int = 10
+
+
+# ==================================================
+# HOME
+# ==================================================
 
 @app.get("/")
 def home():
+
     return {
-        "message": "SkillGap AI API is running"
+        "message": "SkillGap AI API is running",
+        "version": "2.0.0"
     }
 
 
-# --------------------------------------------------
+# ==================================================
 # HEALTH CHECK
-# --------------------------------------------------
+# ==================================================
 
 @app.get("/health")
 def health():
+
     return {
         "status": "healthy",
         "jobs_loaded": len(df)
     }
 
 
-# --------------------------------------------------
-# RECOMMENDATION ENDPOINT
-# --------------------------------------------------
+# ==================================================
+# JOB RECOMMENDATION ENDPOINT
+# ==================================================
 
 @app.post("/recommend")
 def recommend_jobs(
@@ -111,6 +133,11 @@ def recommend_jobs(
 
     # ----------------------------------------------
     # FILTER IT JOBS
+    #
+    # This endpoint is the original MVP job
+    # recommendation engine.
+    # Universal career discovery is handled by
+    # /discover-careers using ESCO.
     # ----------------------------------------------
 
     jobs = df[
@@ -150,13 +177,13 @@ def recommend_jobs(
             "job_skill_set"
         ]
 
-
         if isinstance(
             required_skills,
             str
         ):
 
             try:
+
                 required_skills = (
                     ast.literal_eval(
                         required_skills
@@ -167,6 +194,7 @@ def recommend_jobs(
                 ValueError,
                 SyntaxError
             ):
+
                 continue
 
 
@@ -174,6 +202,7 @@ def recommend_jobs(
             required_skills,
             (list, tuple, set)
         ):
+
             continue
 
 
@@ -207,12 +236,12 @@ def recommend_jobs(
 
 
     # ----------------------------------------------
-    # SORT RESULTS
+    # SORT JOBS
     # ----------------------------------------------
 
     results = sorted(
         results,
-        key=lambda x: x[
+        key=lambda item: item[
             "match_score"
         ],
         reverse=True
@@ -220,14 +249,15 @@ def recommend_jobs(
 
 
     positive_results = [
-        result
-        for result in results
-        if result["match_score"] > 0
+        item
+        for item in results
+        if item["match_score"] > 0
     ]
 
 
     if positive_results:
         top_jobs = positive_results[:5]
+
     else:
         top_jobs = results[:5]
 
@@ -244,15 +274,17 @@ def recommend_jobs(
             "missing_skills"
         ]:
 
-            normalized = (
-                normalize_skill(skill)
+            normalized_skill = (
+                normalize_skill(
+                    skill
+                )
             )
 
             skill_frequency[
-                normalized
+                normalized_skill
             ] = (
                 skill_frequency.get(
-                    normalized,
+                    normalized_skill,
                     0
                 )
                 + 1
@@ -261,7 +293,7 @@ def recommend_jobs(
 
     learning_skills = sorted(
         skill_frequency.items(),
-        key=lambda x: x[1],
+        key=lambda item: item[1],
         reverse=True
     )[:5]
 
@@ -271,16 +303,19 @@ def recommend_jobs(
             "skill": skill,
             "frequency": frequency
         }
+
         for skill, frequency
         in learning_skills
     ]
 
 
     # ----------------------------------------------
-    # RETURN JSON
+    # RETURN JOB RESULT
     # ----------------------------------------------
 
     return {
+        "mode": "job_recommendation",
+
         "target_role":
             request.target_role,
 
@@ -292,4 +327,43 @@ def recommend_jobs(
 
         "learn_next":
             learn_next
+    }
+
+
+# ==================================================
+# UNIVERSAL CAREER DISCOVERY ENDPOINT
+# ==================================================
+
+@app.post("/discover-careers")
+def discover_career_options(
+    request: CareerDiscoveryRequest
+):
+
+    # Prevent extreme values
+    limit = max(
+        1,
+        min(
+            request.limit,
+            25
+        )
+    )
+
+
+    career_matches = discover_careers(
+        request.skills,
+        limit=limit
+    )
+
+
+    return {
+        "mode": "career_discovery",
+
+        "user_skills":
+            request.skills,
+
+        "total_results":
+            len(career_matches),
+
+        "career_matches":
+            career_matches
     }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,54 +12,223 @@
 
 <body>
 
-    <div class="container">
+    <div class="app-shell">
 
-        <h1>SkillGap AI</h1>
+        <header class="topbar">
+            <div>
+                <h1>SkillGap AI</h1>
+                <p>
+                    AI-Powered Career Intelligence Platform
+                </p>
+            </div>
 
-        <p class="subtitle">
-            Discover your best job matches and identify the skills you should learn next.
-        </p>
+            <div class="status-badge">
+                Career Intelligence v2
+            </div>
+        </header>
 
-        <div class="form-card">
 
-            <label>Your Skills</label>
+        <main class="container">
 
-            <textarea
-                id="skills"
-                placeholder="Python, SQL, Excel, Power BI, Data Analysis"
-            ></textarea>
+            <section class="hero">
 
-            <label>Target Job Role</label>
+                <span class="eyebrow">
+                    CAREER INTELLIGENCE
+                </span>
 
-            <input
-                id="targetRole"
-                type="text"
-                placeholder="e.g. data"
+                <h2>
+                    Discover where your skills can take you.
+                </h2>
+
+                <p>
+                    Analyze your skills, discover suitable careers,
+                    identify skill gaps, and plan what to learn next.
+                </p>
+
+            </section>
+
+
+            <section class="mode-switch">
+
+                <button
+                    id="careerModeBtn"
+                    class="mode-btn active"
+                    onclick="switchMode('career')"
+                >
+                    Discover Careers
+                </button>
+
+                <button
+                    id="jobModeBtn"
+                    class="mode-btn"
+                    onclick="switchMode('job')"
+                >
+                    Match Jobs
+                </button>
+
+            </section>
+
+
+            <section class="input-card">
+
+                <div class="form-group">
+                    <label for="skills">
+                        Your Skills
+                    </label>
+
+                    <textarea
+                        id="skills"
+                        placeholder="Example: Python, SQL, Statistics, Data Analysis, Communication, Problem Solving"
+                    ></textarea>
+                </div>
+
+
+                <div
+                    id="targetRoleGroup"
+                    class="form-group hidden"
+                >
+                    <label for="targetRole">
+                        Target Job Role
+                    </label>
+
+                    <input
+                        id="targetRole"
+                        type="text"
+                        placeholder="Example: data analyst"
+                    >
+                </div>
+
+
+                <div class="form-footer">
+
+                    <p id="modeDescription">
+                        We'll compare your skills with ESCO occupations
+                        and discover suitable career paths.
+                    </p>
+
+                    <button
+                        id="analyzeButton"
+                        class="primary-button"
+                        onclick="analyzeSkills()"
+                    >
+                        Discover My Careers
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <div
+                id="loading"
+                class="loading hidden"
+            >
+                <div class="spinner"></div>
+
+                <p>
+                    Analyzing your skills...
+                </p>
+            </div>
+
+
+            <div
+                id="errorBox"
+                class="error-box hidden"
+            ></div>
+
+
+            <section
+                id="careerResultsSection"
+                class="results-section hidden"
             >
 
-            <button onclick="getRecommendations()">
-                Analyze My Skills
-            </button>
+                <div class="section-heading">
 
-        </div>
+                    <div>
+                        <span class="eyebrow">
+                            YOUR RESULTS
+                        </span>
 
-        <div id="loading" class="hidden">
-            Analyzing job matches...
-        </div>
+                        <h2>
+                            Career Matches
+                        </h2>
+                    </div>
 
-        <section id="results" class="hidden">
+                    <div
+                        id="careerCount"
+                        class="result-count"
+                    ></div>
 
-            <h2>Top Job Matches</h2>
-            <div id="jobResults"></div>
+                </div>
 
-            <h2>Skills You Should Learn Next</h2>
-            <div id="learningSkills"></div>
 
-        </section>
+                <div
+                    id="careerResults"
+                    class="career-grid"
+                ></div>
+
+            </section>
+
+
+            <section
+                id="jobResultsSection"
+                class="results-section hidden"
+            >
+
+                <div class="section-heading">
+
+                    <div>
+                        <span class="eyebrow">
+                            JOB ANALYSIS
+                        </span>
+
+                        <h2>
+                            Top Job Matches
+                        </h2>
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="jobResults"
+                    class="job-grid"
+                ></div>
+
+
+                <div class="learning-section">
+
+                    <div class="section-heading">
+
+                        <div>
+                            <span class="eyebrow">
+                                SKILL DEVELOPMENT
+                            </span>
+
+                            <h2>
+                                Skills To Learn Next
+                            </h2>
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="learningSkills"
+                        class="learning-grid"
+                    ></div>
+
+                </div>
+
+            </section>
+
+        </main>
 
     </div>
+
 
     <script src="app.js"></script>
 
 </body>
+
 </html>

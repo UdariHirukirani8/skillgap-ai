@@ -5,7 +5,8 @@ from esco_service import (
 
 from skill_matcher import (
     skills_are_similar_for_discovery,
-    get_discovery_skill_weight
+    get_discovery_skill_weight,
+    normalize_skill
 )
 
 
@@ -15,7 +16,9 @@ def calculate_weighted_match(
 ):
     total_weight = 0
     matched_weight = 0
+
     matched_skills = []
+    missing_skills = []
 
     for required_skill in required_skills:
 
@@ -24,6 +27,8 @@ def calculate_weighted_match(
         )
 
         total_weight += weight
+
+        found_match = False
 
         for user_skill in user_skills:
 
@@ -35,20 +40,236 @@ def calculate_weighted_match(
                 matched_skills.append(
                     required_skill
                 )
+                found_match = True
                 break
 
+        if not found_match:
+            missing_skills.append(
+                required_skill
+            )
+
     if total_weight == 0:
-        return 0, []
+        coverage_score = 0
 
-    score = (
-        matched_weight
-        / total_weight
-    ) * 100
+    else:
+        coverage_score = (
+            matched_weight / total_weight
+        ) * 100
 
-    return (
-        round(score, 2),
-        matched_skills
+    return {
+        "coverage_score":
+            round(coverage_score, 2),
+
+        "matched_skills":
+            matched_skills,
+
+        "missing_skills":
+            missing_skills,
+
+        "matched_weight":
+            matched_weight,
+
+        "total_weight":
+            total_weight
+    }
+
+
+def calculate_career_fit(
+    user_skills,
+    essential_skills,
+    optional_skills
+):
+    essential_result = (
+        calculate_weighted_match(
+            user_skills,
+            essential_skills
+        )
     )
+
+    optional_result = (
+        calculate_weighted_match(
+            user_skills,
+            optional_skills
+        )
+    )
+
+    essential_matches = len(
+        essential_result[
+            "matched_skills"
+        ]
+    )
+
+    optional_matches = len(
+        optional_result[
+            "matched_skills"
+        ]
+    )
+
+    total_matches = (
+        essential_matches
+        +
+        optional_matches
+    )
+
+    # ----------------------------------------
+    # SCORE COMPONENT 1:
+    # Essential skill coverage
+    # ----------------------------------------
+
+    essential_component = min(
+        essential_result[
+            "coverage_score"
+        ],
+        100
+    ) * 0.55
+
+    # ----------------------------------------
+    # SCORE COMPONENT 2:
+    # Number of strong matches
+    # ----------------------------------------
+
+    match_strength_score = min(
+        essential_matches * 12,
+        30
+    )
+
+    # ----------------------------------------
+    # SCORE COMPONENT 3:
+    # Optional skill bonus
+    # ----------------------------------------
+
+    optional_bonus = min(
+        optional_matches * 3,
+        10
+    )
+
+    # ----------------------------------------
+    # SCORE COMPONENT 4:
+    # Domain-specific bonus
+    # ----------------------------------------
+
+    normalized_user_skills = {
+        normalize_skill(skill)
+        for skill in user_skills
+    }
+
+    domain_specific_skills = {
+        skill
+        for skill in normalized_user_skills
+        if get_discovery_skill_weight(skill)
+        >= 3
+    }
+
+    domain_bonus = min(
+        len(domain_specific_skills) * 2,
+        5
+    )
+
+    career_fit_score = (
+        essential_component
+        +
+        match_strength_score
+        +
+        optional_bonus
+        +
+        domain_bonus
+    )
+
+    career_fit_score = min(
+        career_fit_score,
+        100
+    )
+
+    # ----------------------------------------
+    # CONFIDENCE
+    # ----------------------------------------
+
+    if (
+        essential_matches >= 4
+        and career_fit_score >= 60
+    ):
+        confidence = "High"
+
+    elif (
+        essential_matches >= 2
+        and career_fit_score >= 30
+    ):
+        confidence = "Medium"
+
+    else:
+        confidence = "Low"
+
+    # ----------------------------------------
+    # KEY GAPS
+    # ----------------------------------------
+
+    key_gaps = (
+        essential_result[
+            "missing_skills"
+        ][:5]
+    )
+
+    # ----------------------------------------
+    # EXPLANATION
+    # ----------------------------------------
+
+    if confidence == "High":
+
+        explanation = (
+            "You already match several core "
+            "skills required for this career."
+        )
+
+    elif confidence == "Medium":
+
+        explanation = (
+            "You have a useful foundation for "
+            "this career, but several important "
+            "skills are still missing."
+        )
+
+    else:
+
+        explanation = (
+            "This career has some connection "
+            "to your current skills, but you "
+            "would need significant upskilling."
+        )
+
+    return {
+        "career_fit_score":
+            round(
+                career_fit_score,
+                2
+            ),
+
+        "confidence":
+            confidence,
+
+        "essential_coverage":
+            essential_result[
+                "coverage_score"
+            ],
+
+        "matched_essential_skills":
+            essential_result[
+                "matched_skills"
+            ],
+
+        "matched_optional_skills":
+            optional_result[
+                "matched_skills"
+            ],
+
+        "key_gaps":
+            key_gaps,
+
+        "total_matches":
+            total_matches,
+
+        "explanation":
+            explanation
+    }
 
 
 def discover_careers(
@@ -59,9 +280,11 @@ def discover_careers(
 
     for _, occupation in occupations.iterrows():
 
-        occupation_uri = occupation[
-            "conceptUri"
-        ]
+        occupation_uri = (
+            occupation[
+                "conceptUri"
+            ]
+        )
 
         skills_df = get_occupation_skills(
             occupation_uri
@@ -72,7 +295,9 @@ def discover_careers(
 
         essential_skills = (
             skills_df[
-                skills_df["relationType"]
+                skills_df[
+                    "relationType"
+                ]
                 == "essential"
             ]["preferredLabel"]
             .dropna()
@@ -81,77 +306,87 @@ def discover_careers(
 
         optional_skills = (
             skills_df[
-                skills_df["relationType"]
+                skills_df[
+                    "relationType"
+                ]
                 == "optional"
             ]["preferredLabel"]
             .dropna()
             .tolist()
         )
 
-        (
-            essential_score,
-            matched_essential
-        ) = calculate_weighted_match(
+        fit_result = calculate_career_fit(
             user_skills,
-            essential_skills
-        )
-
-        (
-            optional_score,
-            matched_optional
-        ) = calculate_weighted_match(
-            user_skills,
+            essential_skills,
             optional_skills
         )
 
-        final_score = (
-            essential_score * 0.85
-            +
-            optional_score * 0.15
-        )
+        if fit_result[
+            "total_matches"
+        ] < 2:
+            continue
 
-        meaningful_matches = (
-            len(matched_essential)
-            +
-            len(matched_optional)
-        )
+        results.append({
+            "occupation":
+                occupation[
+                    "preferredLabel"
+                ],
 
-        if (
-            final_score > 0
-            and meaningful_matches >= 2
-        ):
-            results.append({
-                "occupation":
-                    occupation[
-                        "preferredLabel"
-                    ],
+            "description":
+                occupation[
+                    "description"
+                ],
 
-                "description":
-                    occupation[
-                        "description"
-                    ],
+            "career_fit_score":
+                fit_result[
+                    "career_fit_score"
+                ],
 
-                "match_score":
-                    round(
-                        final_score,
-                        2
-                    ),
+            "confidence":
+                fit_result[
+                    "confidence"
+                ],
 
-                "matched_essential_skills":
-                    matched_essential,
+            "essential_coverage":
+                fit_result[
+                    "essential_coverage"
+                ],
 
-                "matched_optional_skills":
-                    matched_optional,
+            "matched_essential_skills":
+                fit_result[
+                    "matched_essential_skills"
+                ],
 
-                "meaningful_matches":
-                    meaningful_matches
-            })
+            "matched_optional_skills":
+                fit_result[
+                    "matched_optional_skills"
+                ],
+
+            "key_gaps":
+                fit_result[
+                    "key_gaps"
+                ],
+
+            "explanation":
+                fit_result[
+                    "explanation"
+                ],
+
+            "total_matches":
+                fit_result[
+                    "total_matches"
+                ]
+        })
 
     results = sorted(
         results,
-        key=lambda x: (
-            x["match_score"],
-            x["meaningful_matches"]
+        key=lambda item: (
+            item[
+                "career_fit_score"
+            ],
+            item[
+                "total_matches"
+            ]
         ),
         reverse=True
     )
@@ -178,13 +413,13 @@ if __name__ == "__main__":
     print("\n")
     print("=" * 70)
     print(
-        "SKILLGAP AI - CAREER DISCOVERY V2"
+        "SKILLGAP AI - CAREER DISCOVERY V3"
     )
     print("=" * 70)
 
     if not matches:
         print(
-            "\nNo suitable career matches found."
+            "\nNo suitable careers found."
         )
 
     for index, career in enumerate(
@@ -198,30 +433,58 @@ if __name__ == "__main__":
         )
 
         print(
-            "Match Score:",
-            career["match_score"],
-            "%"
+            "Career Fit Score:",
+            career[
+                "career_fit_score"
+            ],
+            "/100"
         )
 
         print(
-            "Meaningful Matches:",
+            "Confidence:",
             career[
-                "meaningful_matches"
+                "confidence"
             ]
         )
 
         print(
-            "Matched Essential Skills:",
+            "Essential Coverage:",
+            career[
+                "essential_coverage"
+            ],
+            "%"
+        )
+
+        print(
+            "Matched Essential Skills:"
+        )
+
+        print(
             career[
                 "matched_essential_skills"
             ]
         )
 
         print(
-            "Matched Optional Skills:",
+            "Key Gaps:"
+        )
+
+        print(
             career[
-                "matched_optional_skills"
+                "key_gaps"
             ]
         )
 
-        print("-" * 70)
+        print(
+            "Why Recommended:"
+        )
+
+        print(
+            career[
+                "explanation"
+            ]
+        )
+
+        print(
+            "-" * 70
+        )

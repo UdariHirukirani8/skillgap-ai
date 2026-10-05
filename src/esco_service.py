@@ -2,9 +2,17 @@ from pathlib import Path
 import pandas as pd
 
 
+# ==================================================
+# PATHS
+# ==================================================
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ESCO_DIR = PROJECT_ROOT / "data" / "raw" / "esco"
 
+
+# ==================================================
+# LOAD ESCO DATA ONCE
+# ==================================================
 
 occupations = pd.read_csv(
     ESCO_DIR / "occupations_en.csv",
@@ -22,13 +30,80 @@ relations = pd.read_csv(
 )
 
 
-def search_occupations(keyword, limit=10):
-    keyword = keyword.strip().lower()
+# ==================================================
+# PREPARE SKILL LOOKUP
+# ==================================================
+
+skills_lookup = (
+    skills[
+        [
+            "conceptUri",
+            "preferredLabel",
+            "description"
+        ]
+    ]
+    .rename(
+        columns={
+            "conceptUri": "skillUri"
+        }
+    )
+)
+
+
+# ==================================================
+# MERGE RELATIONS + SKILLS ONLY ONCE
+# ==================================================
+
+occupation_skill_data = relations.merge(
+    skills_lookup,
+    on="skillUri",
+    how="left"
+)
+
+
+# ==================================================
+# CREATE FAST CACHE
+# ==================================================
+
+OCCUPATION_SKILLS_CACHE = {
+    occupation_uri: group[
+        [
+            "relationType",
+            "preferredLabel",
+            "description"
+        ]
+    ].copy()
+
+    for occupation_uri, group
+    in occupation_skill_data.groupby(
+        "occupationUri"
+    )
+}
+
+
+# ==================================================
+# SEARCH OCCUPATIONS
+# ==================================================
+
+def search_occupations(
+    keyword,
+    limit=10
+):
+    keyword = (
+        keyword
+        .strip()
+        .lower()
+    )
 
     matches = occupations[
-        occupations["preferredLabel"]
+        occupations[
+            "preferredLabel"
+        ]
         .str.lower()
-        .str.contains(keyword, na=False)
+        .str.contains(
+            keyword,
+            na=False
+        )
     ]
 
     return matches[
@@ -40,48 +115,68 @@ def search_occupations(keyword, limit=10):
     ].head(limit)
 
 
-def get_occupation_skills(occupation_uri):
-    occupation_relations = relations[
-        relations["occupationUri"] == occupation_uri
-    ].copy()
+# ==================================================
+# GET OCCUPATION SKILLS
+# ==================================================
 
-    merged = occupation_relations.merge(
-        skills,
-        left_on="skillUri",
-        right_on="conceptUri",
-        how="left"
+def get_occupation_skills(
+    occupation_uri
+):
+    return OCCUPATION_SKILLS_CACHE.get(
+        occupation_uri,
+        pd.DataFrame(
+            columns=[
+                "relationType",
+                "preferredLabel",
+                "description"
+            ]
+        )
     )
 
-    columns = [
-        "relationType",
-        "preferredLabel",
-        "description"
-    ]
 
-    available_columns = [
-        col
-        for col in columns
-        if col in merged.columns
-    ]
-
-    return merged[available_columns]
-
+# ==================================================
+# QUICK TEST
+# ==================================================
 
 if __name__ == "__main__":
-    print("\nSearch results for 'teacher':\n")
 
-    results = search_occupations("teacher", 5)
+    print(
+        "ESCO occupations:",
+        len(occupations)
+    )
+
+    print(
+        "Cached occupations:",
+        len(
+            OCCUPATION_SKILLS_CACHE
+        )
+    )
+
+    results = search_occupations(
+        "teacher",
+        5
+    )
+
+    print(
+        "\nTeacher search:"
+    )
 
     print(results)
 
     if not results.empty:
-        occupation_uri = results.iloc[0]["conceptUri"]
 
-        print("\nSkills for:")
-        print(results.iloc[0]["preferredLabel"])
-
-        occupation_skills = get_occupation_skills(
-            occupation_uri
+        uri = (
+            results.iloc[0][
+                "conceptUri"
+            ]
         )
 
-        print(occupation_skills.head(20))
+        print(
+            "\nSkills:"
+        )
+
+        print(
+            get_occupation_skills(
+                uri
+            ).head(10)
+        )
