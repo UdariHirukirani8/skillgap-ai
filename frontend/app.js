@@ -1,5 +1,7 @@
 let currentMode = "career";
 
+let selectedCareers = [];
+
 
 // ======================================================
 // SWITCH MODE
@@ -37,10 +39,17 @@ function switchMode(mode) {
 
     if (mode === "career") {
 
-        careerButton.classList.add("active");
-        jobButton.classList.remove("active");
+        careerButton.classList.add(
+            "active"
+        );
 
-        targetRoleGroup.classList.add("hidden");
+        jobButton.classList.remove(
+            "active"
+        );
+
+        targetRoleGroup.classList.add(
+            "hidden"
+        );
 
         analyzeButton.textContent =
             "Discover My Careers";
@@ -50,10 +59,17 @@ function switchMode(mode) {
 
     } else {
 
-        jobButton.classList.add("active");
-        careerButton.classList.remove("active");
+        jobButton.classList.add(
+            "active"
+        );
 
-        targetRoleGroup.classList.remove("hidden");
+        careerButton.classList.remove(
+            "active"
+        );
+
+        targetRoleGroup.classList.remove(
+            "hidden"
+        );
 
         analyzeButton.textContent =
             "Find Matching Jobs";
@@ -62,12 +78,15 @@ function switchMode(mode) {
             "Enter a target role and we'll analyze your job match and missing skills.";
     }
 
+
+    clearCareerSelection();
+
     clearResults();
 }
 
 
 // ======================================================
-// GET USER SKILLS
+// GET SKILLS
 // ======================================================
 
 function getSkills() {
@@ -76,6 +95,7 @@ function getSkills() {
         document.getElementById(
             "skills"
         ).value;
+
 
     return skillsText
         .split(",")
@@ -91,13 +111,14 @@ function getSkills() {
 
 
 // ======================================================
-// MAIN ANALYZE BUTTON
+// MAIN ANALYSIS
 // ======================================================
 
 async function analyzeSkills() {
 
     const skills =
         getSkills();
+
 
     if (skills.length === 0) {
 
@@ -108,9 +129,15 @@ async function analyzeSkills() {
         return;
     }
 
+
     hideError();
+
+    clearCareerSelection();
+
     clearResults();
+
     showLoading();
+
 
     try {
 
@@ -129,7 +156,9 @@ async function analyzeSkills() {
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
 
         showError(
             "Unable to connect to SkillGap AI API. Make sure the FastAPI backend is running."
@@ -143,7 +172,7 @@ async function analyzeSkills() {
 
 
 // ======================================================
-// CAREER DISCOVERY API
+// DISCOVER CAREERS
 // ======================================================
 
 async function discoverCareers(
@@ -154,19 +183,25 @@ async function discoverCareers(
         await fetch(
             "http://127.0.0.1:8000/discover-careers",
             {
-                method: "POST",
+                method:
+                    "POST",
 
                 headers: {
                     "Content-Type":
                         "application/json"
                 },
 
-                body: JSON.stringify({
-                    skills: skills,
-                    limit: 10
-                })
+                body:
+                    JSON.stringify({
+                        skills:
+                            skills,
+
+                        limit:
+                            10
+                    })
             }
         );
+
 
     if (!response.ok) {
 
@@ -175,8 +210,10 @@ async function discoverCareers(
         );
     }
 
+
     const data =
         await response.json();
+
 
     renderCareerResults(
         data
@@ -185,7 +222,7 @@ async function discoverCareers(
 
 
 // ======================================================
-// JOB MATCH API
+// JOB MATCH
 // ======================================================
 
 async function matchJobs(
@@ -193,30 +230,37 @@ async function matchJobs(
 ) {
 
     const targetRole =
-        document.getElementById(
+        document
+        .getElementById(
             "targetRole"
         )
         .value
         .trim();
 
+
     const response =
         await fetch(
             "http://127.0.0.1:8000/recommend",
             {
-                method: "POST",
+                method:
+                    "POST",
 
                 headers: {
                     "Content-Type":
                         "application/json"
                 },
 
-                body: JSON.stringify({
-                    skills: skills,
-                    target_role:
-                        targetRole
-                })
+                body:
+                    JSON.stringify({
+                        skills:
+                            skills,
+
+                        target_role:
+                            targetRole
+                    })
             }
         );
+
 
     if (!response.ok) {
 
@@ -225,8 +269,10 @@ async function matchJobs(
         );
     }
 
+
     const data =
         await response.json();
+
 
     renderJobResults(
         data
@@ -235,7 +281,7 @@ async function matchJobs(
 
 
 // ======================================================
-// RENDER CAREER RESULTS
+// CAREER RESULT CARDS
 // ======================================================
 
 function renderCareerResults(
@@ -247,20 +293,26 @@ function renderCareerResults(
             "careerResultsSection"
         );
 
+
     const container =
         document.getElementById(
             "careerResults"
         );
+
 
     const count =
         document.getElementById(
             "careerCount"
         );
 
-    container.innerHTML = "";
+
+    container.innerHTML =
+        "";
+
 
     count.textContent =
         `${data.total_results} careers found`;
+
 
     if (
         !data.career_matches ||
@@ -280,6 +332,7 @@ function renderCareerResults(
         return;
     }
 
+
     data.career_matches.forEach(
         (career, index) => {
 
@@ -288,8 +341,10 @@ function renderCareerResults(
                     "article"
                 );
 
+
             card.className =
                 "career-card";
+
 
             const confidenceClass =
                 String(
@@ -297,12 +352,15 @@ function renderCareerResults(
                 )
                 .toLowerCase();
 
+
             const matchedSkills = [
+
                 ...(
                     career
                     .matched_essential_skills
                     || []
                 ),
+
                 ...(
                     career
                     .matched_optional_skills
@@ -310,10 +368,12 @@ function renderCareerResults(
                 )
             ];
 
+
             const safeOccupation =
                 escapeHTML(
                     career.occupation
                 );
+
 
             card.innerHTML = `
 
@@ -340,23 +400,28 @@ function renderCareerResults(
 
                     </div>
 
+
                     <div class="fit-score">
+
                         ${
                             career
                             .career_fit_score
                         }/100
+
                     </div>
 
                 </div>
 
 
                 <p class="description">
+
                     ${escapeHTML(
                         shortenText(
                             career.description,
                             220
                         )
                     )}
+
                 </p>
 
 
@@ -377,10 +442,12 @@ function renderCareerResults(
 
                     </div>
 
+
                     <div class="progress-track">
 
                         <div
                             class="progress-fill"
+
                             style="
                                 width:
                                 ${
@@ -405,6 +472,7 @@ function renderCareerResults(
                     </h4>
 
                     <div class="tag-list">
+
                         ${
                             renderTags(
                                 matchedSkills,
@@ -412,6 +480,7 @@ function renderCareerResults(
                                 "No direct skill matches."
                             )
                         }
+
                     </div>
 
                 </div>
@@ -424,6 +493,7 @@ function renderCareerResults(
                     </h4>
 
                     <div class="tag-list">
+
                         ${
                             renderTags(
                                 career.key_gaps,
@@ -431,6 +501,7 @@ function renderCareerResults(
                                 "No major gaps identified."
                             )
                         }
+
                     </div>
 
                 </div>
@@ -452,9 +523,23 @@ function renderCareerResults(
 
 
                 <button
-                    class="impact-button"
+                    class="compare-career-button"
+
                     data-occupation="${safeOccupation}"
+
+                    onclick="toggleCareerComparison(this)"
+                >
+                    + Add to Compare
+                </button>
+
+
+                <button
+                    class="impact-button"
+
+                    data-occupation="${safeOccupation}"
+
                     data-index="${index}"
+
                     onclick="showSkillImpactFromButton(this)"
                 >
                     See Skill Impact
@@ -469,8 +554,11 @@ function renderCareerResults(
 
                 <button
                     class="roadmap-button"
+
                     data-occupation="${safeOccupation}"
+
                     data-index="${index}"
+
                     onclick="showRoadmapFromButton(this)"
                 >
                     Build My 90-Day Roadmap
@@ -483,15 +571,553 @@ function renderCareerResults(
                 ></div>
             `;
 
+
             container.appendChild(
                 card
             );
         }
     );
 
+
     section.classList.remove(
         "hidden"
     );
+}
+
+
+// ======================================================
+// CAREER SELECTION
+// ======================================================
+
+function toggleCareerComparison(
+    button
+) {
+
+    const occupation =
+        button.dataset.occupation;
+
+
+    const exists =
+        selectedCareers.includes(
+            occupation
+        );
+
+
+    if (exists) {
+
+        selectedCareers =
+            selectedCareers.filter(
+                career =>
+                    career !== occupation
+            );
+
+
+        button.classList.remove(
+            "selected"
+        );
+
+
+        button.textContent =
+            "+ Add to Compare";
+
+    } else {
+
+        if (
+            selectedCareers.length >= 3
+        ) {
+
+            showError(
+                "You can compare a maximum of 3 careers at once."
+            );
+
+            return;
+        }
+
+
+        hideError();
+
+
+        selectedCareers.push(
+            occupation
+        );
+
+
+        button.classList.add(
+            "selected"
+        );
+
+
+        button.textContent =
+            "✓ Selected for Compare";
+    }
+
+
+    updateCompareBar();
+}
+
+
+// ======================================================
+// COMPARE BAR
+// ======================================================
+
+function updateCompareBar() {
+
+    const bar =
+        document.getElementById(
+            "compareBar"
+        );
+
+
+    const count =
+        document.getElementById(
+            "compareCount"
+        );
+
+
+    const button =
+        document.getElementById(
+            "compareSelectedButton"
+        );
+
+
+    count.textContent =
+        `${selectedCareers.length} career(s) selected`;
+
+
+    button.disabled =
+        selectedCareers.length < 2;
+
+
+    if (
+        selectedCareers.length === 0
+    ) {
+
+        bar.classList.add(
+            "hidden"
+        );
+
+    } else {
+
+        bar.classList.remove(
+            "hidden"
+        );
+    }
+}
+
+
+// ======================================================
+// CLEAR CAREER SELECTION
+// ======================================================
+
+function clearCareerSelection() {
+
+    selectedCareers =
+        [];
+
+
+    document
+        .querySelectorAll(
+            ".compare-career-button"
+        )
+        .forEach(
+            button => {
+
+                button.classList.remove(
+                    "selected"
+                );
+
+                button.textContent =
+                    "+ Add to Compare";
+            }
+        );
+
+
+    updateCompareBar();
+
+
+    document
+        .getElementById(
+            "comparisonSection"
+        )
+        .classList
+        .add(
+            "hidden"
+        );
+}
+
+
+// ======================================================
+// COMPARE CAREERS
+// ======================================================
+
+async function compareSelectedCareers() {
+
+    if (
+        selectedCareers.length < 2
+    ) {
+
+        showError(
+            "Select at least two careers to compare."
+        );
+
+        return;
+    }
+
+
+    hideError();
+
+
+    const button =
+        document.getElementById(
+            "compareSelectedButton"
+        );
+
+
+    button.disabled =
+        true;
+
+
+    button.textContent =
+        "Comparing...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                "http://127.0.0.1:8000/compare-careers",
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            skills:
+                                getSkills(),
+
+                            occupations:
+                                selectedCareers
+                        })
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Career comparison request failed."
+            );
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (data.error) {
+
+            showError(
+                data.error
+            );
+
+            return;
+        }
+
+
+        renderCareerComparison(
+            data
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        showError(
+            "Unable to compare careers."
+        );
+
+    } finally {
+
+        button.disabled =
+            false;
+
+
+        button.textContent =
+            "Compare Selected";
+    }
+}
+
+
+// ======================================================
+// RENDER CAREER COMPARISON
+// ======================================================
+
+function renderCareerComparison(
+    data
+) {
+
+    const section =
+        document.getElementById(
+            "comparisonSection"
+        );
+
+
+    const recommendation =
+        document.getElementById(
+            "comparisonRecommendation"
+        );
+
+
+    const container =
+        document.getElementById(
+            "comparisonResults"
+        );
+
+
+    recommendation.innerHTML = `
+
+        <span class="eyebrow">
+            BEST OVERALL MATCH
+        </span>
+
+        <h3>
+            ${escapeHTML(
+                data.recommended_career
+            )}
+        </h3>
+
+        <p>
+            ${escapeHTML(
+                data.recommendation_reason
+            )}
+        </p>
+    `;
+
+
+    container.innerHTML =
+        "";
+
+
+    data.comparisons.forEach(
+        career => {
+
+            const card =
+                document.createElement(
+                    "article"
+                );
+
+
+            card.className =
+                "comparison-card";
+
+
+            const isWinner =
+                career.occupation
+                ===
+                data.recommended_career;
+
+
+            if (isWinner) {
+
+                card.classList.add(
+                    "winner"
+                );
+            }
+
+
+            card.innerHTML = `
+
+                ${
+                    isWinner
+                    ? `
+                        <div class="winner-badge">
+                            Best Choice
+                        </div>
+                    `
+                    : ""
+                }
+
+
+                <div class="comparison-rank">
+                    #${career.rank}
+                </div>
+
+
+                <h3>
+                    ${escapeHTML(
+                        career.occupation
+                    )}
+                </h3>
+
+
+                <p class="comparison-description">
+
+                    ${escapeHTML(
+                        shortenText(
+                            career.description,
+                            150
+                        )
+                    )}
+
+                </p>
+
+
+                <div class="comparison-score">
+
+                    <span>
+                        Current Fit
+                    </span>
+
+                    <strong>
+                        ${career.career_fit_score}/100
+                    </strong>
+
+                </div>
+
+
+                <div class="comparison-progress">
+
+                    <div
+                        class="comparison-progress-fill"
+
+                        style="
+                            width:
+                            ${
+                                Math.min(
+                                    career.career_fit_score,
+                                    100
+                                )
+                            }%;
+                        "
+                    ></div>
+
+                </div>
+
+
+                <div class="comparison-metric">
+
+                    <span>
+                        Confidence
+                    </span>
+
+                    <strong>
+                        ${escapeHTML(
+                            career.confidence
+                        )}
+                    </strong>
+
+                </div>
+
+
+                <div class="comparison-metric">
+
+                    <span>
+                        Essential Coverage
+                    </span>
+
+                    <strong>
+                        ${career.essential_coverage}%
+                    </strong>
+
+                </div>
+
+
+                <div class="comparison-metric">
+
+                    <span>
+                        Best Next Skill
+                    </span>
+
+                    <strong>
+                        ${
+                            career.best_next_skill
+                            ? escapeHTML(
+                                career.best_next_skill
+                            )
+                            : "None"
+                        }
+                    </strong>
+
+                </div>
+
+
+                <div class="comparison-metric">
+
+                    <span>
+                        Potential Gain
+                    </span>
+
+                    <strong class="positive-value">
+                        +${career.potential_improvement}
+                    </strong>
+
+                </div>
+
+
+                <div class="projected-score-box">
+
+                    <span>
+                        Projected Score
+                    </span>
+
+                    <strong>
+                        ${career.projected_score}/100
+                    </strong>
+
+                </div>
+
+
+                <div class="card-section">
+
+                    <h4>
+                        Key Gaps
+                    </h4>
+
+                    <div class="tag-list">
+
+                        ${
+                            renderTags(
+                                career.key_gaps,
+                                "gap",
+                                "No major gaps"
+                            )
+                        }
+
+                    </div>
+
+                </div>
+            `;
+
+
+            container.appendChild(
+                card
+            );
+        }
+    );
+
+
+    section.classList.remove(
+        "hidden"
+    );
+
+
+    section.scrollIntoView({
+        behavior:
+            "smooth",
+
+        block:
+            "start"
+    });
 }
 
 
@@ -503,15 +1129,9 @@ function showSkillImpactFromButton(
     button
 ) {
 
-    const occupation =
-        button.dataset.occupation;
-
-    const index =
-        button.dataset.index;
-
     showSkillImpact(
-        occupation,
-        index,
+        button.dataset.occupation,
+        button.dataset.index,
         button
     );
 }
@@ -523,17 +1143,16 @@ async function showSkillImpact(
     button
 ) {
 
-    const skills =
-        getSkills();
-
     const panel =
         document.getElementById(
             `impact-${index}`
         );
 
+
     if (!panel) {
         return;
     }
+
 
     if (
         !panel.classList.contains(
@@ -547,29 +1166,36 @@ async function showSkillImpact(
             "hidden"
         );
 
+
         button.textContent =
             "See Skill Impact";
 
+
         return;
     }
+
 
     panel.classList.remove(
         "hidden"
     );
 
+
     panel.innerHTML = `
         <div class="impact-loading">
+
             <div class="mini-spinner"></div>
 
             <span>
                 Calculating highest-impact skills...
             </span>
+
         </div>
     `;
 
-    button.disabled = true;
-    button.textContent =
-        "Calculating...";
+
+    button.disabled =
+        true;
+
 
     try {
 
@@ -587,8 +1213,9 @@ async function showSkillImpact(
 
                     body:
                         JSON.stringify({
+
                             skills:
-                                skills,
+                                getSkills(),
 
                             occupation:
                                 occupation,
@@ -599,15 +1226,10 @@ async function showSkillImpact(
                 }
             );
 
-        if (!response.ok) {
-
-            throw new Error(
-                "Skill impact request failed."
-            );
-        }
 
         const data =
             await response.json();
+
 
         let html = `
 
@@ -624,6 +1246,7 @@ async function showSkillImpact(
                     </h4>
 
                 </div>
+
 
                 <div class="current-impact-score">
 
@@ -642,8 +1265,8 @@ async function showSkillImpact(
 
             <p class="impact-intro">
 
-                These skills are ranked by how much
-                they could improve your fit for
+                Skills ranked by their predicted
+                impact on your fit for
 
                 <strong>
                     ${escapeHTML(
@@ -652,102 +1275,107 @@ async function showSkillImpact(
                 </strong>.
 
             </p>
+
+
+            <div class="impact-list">
         `;
 
-        if (
-            !data.best_skills_to_learn ||
-            data.best_skills_to_learn.length === 0
-        ) {
 
-            html += `
-                <div class="impact-empty">
-                    No major skill improvements were identified.
-                </div>
-            `;
+        (
+            data.best_skills_to_learn
+            || []
+        )
+        .forEach(
+            (item, skillIndex) => {
 
-        } else {
+                html += `
 
-            html += `
-                <div class="impact-list">
-            `;
+                    <div class="impact-item">
 
-            data.best_skills_to_learn.forEach(
-                (item, skillIndex) => {
+                        <div class="impact-rank">
+                            ${skillIndex + 1}
+                        </div>
 
-                    html += `
 
-                        <div class="impact-item">
+                        <div class="impact-skill-info">
 
-                            <div class="impact-rank">
-                                ${skillIndex + 1}
-                            </div>
+                            <strong>
+                                ${escapeHTML(
+                                    item.skill
+                                )}
+                            </strong>
 
-                            <div class="impact-skill-info">
 
-                                <strong>
-                                    ${escapeHTML(
-                                        item.skill
-                                    )}
-                                </strong>
+                            <div class="impact-score-change">
 
-                                <div class="impact-score-change">
+                                <span>
+                                    ${item.current_score}
+                                </span>
 
-                                    <span>
-                                        ${item.current_score}
-                                    </span>
+                                <span>
+                                    →
+                                </span>
 
-                                    <span>→</span>
-
-                                    <span>
-                                        ${item.new_score}
-                                    </span>
-
-                                </div>
-
-                                <small>
-                                    New confidence:
-                                    ${escapeHTML(
-                                        item.new_confidence
-                                    )}
-                                </small>
+                                <span>
+                                    ${item.new_score}
+                                </span>
 
                             </div>
 
-                            <div class="impact-gain">
-                                +${item.improvement}
-                            </div>
+
+                            <small>
+
+                                New confidence:
+                                ${escapeHTML(
+                                    item.new_confidence
+                                )}
+
+                            </small>
 
                         </div>
-                    `;
-                }
-            );
 
-            html += `
-                </div>
-            `;
-        }
+
+                        <div class="impact-gain">
+
+                            +${item.improvement}
+
+                        </div>
+
+                    </div>
+                `;
+            }
+        );
+
+
+        html += `
+            </div>
+        `;
+
 
         panel.innerHTML =
             html;
 
+
         panel.dataset.loaded =
             "true";
+
 
         button.textContent =
             "Hide Skill Impact";
 
+
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
+
 
         panel.innerHTML = `
             <p class="impact-error">
                 Unable to calculate skill impact.
             </p>
         `;
-
-        button.textContent =
-            "Try Skill Impact Again";
 
     } finally {
 
@@ -765,15 +1393,9 @@ function showRoadmapFromButton(
     button
 ) {
 
-    const occupation =
-        button.dataset.occupation;
-
-    const index =
-        button.dataset.index;
-
     showCareerRoadmap(
-        occupation,
-        index,
+        button.dataset.occupation,
+        button.dataset.index,
         button
     );
 }
@@ -785,17 +1407,16 @@ async function showCareerRoadmap(
     button
 ) {
 
-    const skills =
-        getSkills();
-
     const panel =
         document.getElementById(
             `roadmap-${index}`
         );
 
+
     if (!panel) {
         return;
     }
+
 
     if (
         !panel.classList.contains(
@@ -809,29 +1430,37 @@ async function showCareerRoadmap(
             "hidden"
         );
 
+
         button.textContent =
             "Build My 90-Day Roadmap";
 
+
         return;
     }
+
 
     panel.classList.remove(
         "hidden"
     );
 
+
     panel.innerHTML = `
+
         <div class="roadmap-loading">
+
             <div class="mini-spinner"></div>
 
             <span>
-                Building your 90-day roadmap...
+                Building your roadmap...
             </span>
+
         </div>
     `;
 
-    button.disabled = true;
-    button.textContent =
-        "Building Roadmap...";
+
+    button.disabled =
+        true;
+
 
     try {
 
@@ -839,7 +1468,8 @@ async function showCareerRoadmap(
             await fetch(
                 "http://127.0.0.1:8000/career-roadmap",
                 {
-                    method: "POST",
+                    method:
+                        "POST",
 
                     headers: {
                         "Content-Type":
@@ -848,8 +1478,9 @@ async function showCareerRoadmap(
 
                     body:
                         JSON.stringify({
+
                             skills:
-                                skills,
+                                getSkills(),
 
                             occupation:
                                 occupation,
@@ -860,20 +1491,17 @@ async function showCareerRoadmap(
                 }
             );
 
-        if (!response.ok) {
-
-            throw new Error(
-                "Career roadmap request failed."
-            );
-        }
 
         const data =
             await response.json();
 
-        const roadmap =
-            data.roadmap || {};
 
-        let html = `
+        const roadmap =
+            data.roadmap
+            || {};
+
+
+        panel.innerHTML = `
 
             <div class="roadmap-header">
 
@@ -889,6 +1517,7 @@ async function showCareerRoadmap(
 
                 </div>
 
+
                 <div class="roadmap-score">
 
                     <span>
@@ -902,19 +1531,6 @@ async function showCareerRoadmap(
                 </div>
 
             </div>
-
-
-            <p class="roadmap-intro">
-
-                A practical learning roadmap for
-
-                <strong>
-                    ${escapeHTML(
-                        data.occupation
-                    )}
-                </strong>.
-
-            </p>
 
 
             <div class="roadmap-timeline">
@@ -940,27 +1556,27 @@ async function showCareerRoadmap(
             </div>
         `;
 
-        panel.innerHTML =
-            html;
 
         panel.dataset.loaded =
             "true";
 
+
         button.textContent =
             "Hide 90-Day Roadmap";
 
+
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            error
+        );
+
 
         panel.innerHTML = `
             <p class="roadmap-error">
-                Unable to build the roadmap.
+                Unable to build roadmap.
             </p>
         `;
-
-        button.textContent =
-            "Try Roadmap Again";
 
     } finally {
 
@@ -971,7 +1587,7 @@ async function showCareerRoadmap(
 
 
 // ======================================================
-// ROADMAP STAGE RENDERER
+// ROADMAP STAGE
 // ======================================================
 
 function renderRoadmapStage(
@@ -980,57 +1596,52 @@ function renderRoadmapStage(
     tasks
 ) {
 
-    let tasksHtml = "";
+    const tasksHTML =
+        tasks.length > 0
+        ?
+        tasks
+        .map(
+            task => `
 
-    if (
-        !tasks ||
-        tasks.length === 0
-    ) {
+                <li>
 
-        tasksHtml = `
+                    <span class="roadmap-task-dot"></span>
+
+                    <div>
+
+                        <strong>
+                            ${escapeHTML(
+                                task.title
+                            )}
+                        </strong>
+
+
+                        ${
+                            task.skill
+                            ? `
+                                <small>
+                                    Focus skill:
+                                    ${escapeHTML(
+                                        task.skill
+                                    )}
+                                </small>
+                            `
+                            : ""
+                        }
+
+                    </div>
+
+                </li>
+            `
+        )
+        .join("")
+        :
+        `
             <li>
-                No tasks generated for this stage.
+                No tasks generated.
             </li>
         `;
 
-    } else {
-
-        tasksHtml =
-            tasks
-            .map(
-                task => `
-                    <li>
-
-                        <span class="roadmap-task-dot"></span>
-
-                        <div>
-
-                            <strong>
-                                ${escapeHTML(
-                                    task.title
-                                )}
-                            </strong>
-
-                            ${
-                                task.skill
-                                ? `
-                                    <small>
-                                        Focus skill:
-                                        ${escapeHTML(
-                                            task.skill
-                                        )}
-                                    </small>
-                                `
-                                : ""
-                            }
-
-                        </div>
-
-                    </li>
-                `
-            )
-            .join("");
-    }
 
     return `
 
@@ -1040,6 +1651,7 @@ function renderRoadmapStage(
                 ${period}
             </div>
 
+
             <div class="roadmap-stage-content">
 
                 <h5>
@@ -1047,7 +1659,7 @@ function renderRoadmapStage(
                 </h5>
 
                 <ul>
-                    ${tasksHtml}
+                    ${tasksHTML}
                 </ul>
 
             </div>
@@ -1058,7 +1670,7 @@ function renderRoadmapStage(
 
 
 // ======================================================
-// RENDER JOB RESULTS
+// JOB RESULTS
 // ======================================================
 
 function renderJobResults(
@@ -1070,150 +1682,158 @@ function renderJobResults(
             "jobResultsSection"
         );
 
+
     const jobsContainer =
         document.getElementById(
             "jobResults"
         );
+
 
     const learningContainer =
         document.getElementById(
             "learningSkills"
         );
 
+
     jobsContainer.innerHTML =
         "";
+
 
     learningContainer.innerHTML =
         "";
 
-    if (
-        !data.top_jobs ||
-        data.top_jobs.length === 0
-    ) {
 
-        jobsContainer.innerHTML = `
-            <div class="job-card">
-                No job matches found.
-            </div>
-        `;
+    (
+        data.top_jobs
+        || []
+    )
+    .forEach(
+        (job, index) => {
 
-    } else {
-
-        data.top_jobs.forEach(
-            (job, index) => {
-
-                const card =
-                    document.createElement(
-                        "article"
-                    );
-
-                card.className =
-                    "job-card";
-
-                card.innerHTML = `
-
-                    <span class="eyebrow">
-                        JOB MATCH #${index + 1}
-                    </span>
-
-                    <h3>
-                        ${escapeHTML(
-                            job.job_title
-                        )}
-                    </h3>
-
-                    <div class="job-score">
-                        ${job.match_score}%
-                    </div>
-
-
-                    <div class="card-section">
-
-                        <h4>
-                            Matched Skills
-                        </h4>
-
-                        <div class="tag-list">
-
-                            ${
-                                renderTags(
-                                    job.matched_skills,
-                                    "match",
-                                    "No direct matches"
-                                )
-                            }
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="card-section">
-
-                        <h4>
-                            Missing Skills
-                        </h4>
-
-                        <div class="tag-list">
-
-                            ${
-                                renderTags(
-                                    job.missing_skills,
-                                    "gap",
-                                    "No major gaps"
-                                )
-                            }
-
-                        </div>
-
-                    </div>
-                `;
-
-                jobsContainer.appendChild(
-                    card
+            const card =
+                document.createElement(
+                    "article"
                 );
-            }
-        );
-    }
 
-    if (
-        data.learn_next &&
-        data.learn_next.length > 0
-    ) {
 
-        data.learn_next.forEach(
-            (item, index) => {
+            card.className =
+                "job-card";
 
-                const card =
-                    document.createElement(
-                        "div"
-                    );
 
-                card.className =
-                    "learning-card";
+            card.innerHTML = `
 
-                card.innerHTML = `
+                <span class="eyebrow">
+                    JOB MATCH #${index + 1}
+                </span>
 
-                    <strong>
-                        ${index + 1}.
-                        ${escapeHTML(
-                            item.skill
-                        )}
-                    </strong>
 
-                    <span>
-                        Required by
-                        ${item.frequency}
-                        top job(s)
-                    </span>
-                `;
+                <h3>
+                    ${escapeHTML(
+                        job.job_title
+                    )}
+                </h3>
 
-                learningContainer.appendChild(
-                    card
+
+                <div class="job-score">
+                    ${job.match_score}%
+                </div>
+
+
+                <div class="card-section">
+
+                    <h4>
+                        Matched Skills
+                    </h4>
+
+                    <div class="tag-list">
+
+                        ${
+                            renderTags(
+                                job.matched_skills,
+                                "match",
+                                "No direct matches"
+                            )
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <div class="card-section">
+
+                    <h4>
+                        Missing Skills
+                    </h4>
+
+                    <div class="tag-list">
+
+                        ${
+                            renderTags(
+                                job.missing_skills,
+                                "gap",
+                                "No major gaps"
+                            )
+                        }
+
+                    </div>
+
+                </div>
+            `;
+
+
+            jobsContainer.appendChild(
+                card
+            );
+        }
+    );
+
+
+    (
+        data.learn_next
+        || []
+    )
+    .forEach(
+        (item, index) => {
+
+            const card =
+                document.createElement(
+                    "div"
                 );
-            }
-        );
-    }
+
+
+            card.className =
+                "learning-card";
+
+
+            card.innerHTML = `
+
+                <strong>
+
+                    ${index + 1}.
+                    ${escapeHTML(
+                        item.skill
+                    )}
+
+                </strong>
+
+
+                <span>
+
+                    Required by
+                    ${item.frequency}
+                    top job(s)
+
+                </span>
+            `;
+
+
+            learningContainer.appendChild(
+                card
+            );
+        }
+    );
+
 
     section.classList.remove(
         "hidden"
@@ -1222,7 +1842,7 @@ function renderJobResults(
 
 
 // ======================================================
-// TAG RENDERER
+// TAGS
 // ======================================================
 
 function renderTags(
@@ -1245,6 +1865,7 @@ function renderTags(
         `;
     }
 
+
     return skills
         .slice(
             0,
@@ -1252,6 +1873,7 @@ function renderTags(
         )
         .map(
             skill => `
+
                 <span
                     class="tag ${className}"
                 >
@@ -1266,7 +1888,7 @@ function renderTags(
 
 
 // ======================================================
-// SHORTEN TEXT
+// HELPERS
 // ======================================================
 
 function shortenText(
@@ -1281,12 +1903,14 @@ function shortenText(
         );
     }
 
+
     if (
         text.length <= maxLength
     ) {
 
         return text;
     }
+
 
     return (
         text.slice(
@@ -1298,10 +1922,6 @@ function shortenText(
     );
 }
 
-
-// ======================================================
-// ESCAPE HTML
-// ======================================================
 
 function escapeHTML(
     value
@@ -1315,34 +1935,35 @@ function escapeHTML(
         return "";
     }
 
+
     return String(
         value
     )
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
+    .replaceAll(
+        "&",
+        "&amp;"
+    )
+    .replaceAll(
+        "<",
+        "&lt;"
+    )
+    .replaceAll(
+        ">",
+        "&gt;"
+    )
+    .replaceAll(
+        '"',
+        "&quot;"
+    )
+    .replaceAll(
+        "'",
+        "&#039;"
+    );
 }
 
 
 // ======================================================
-// LOADING
+// LOADING / ERROR / CLEAR
 // ======================================================
 
 function showLoading() {
@@ -1371,23 +1992,21 @@ function hideLoading() {
 }
 
 
-// ======================================================
-// ERRORS
-// ======================================================
-
 function showError(
     message
 ) {
 
-    const errorBox =
+    const box =
         document.getElementById(
             "errorBox"
         );
 
-    errorBox.textContent =
+
+    box.textContent =
         message;
 
-    errorBox.classList.remove(
+
+    box.classList.remove(
         "hidden"
     );
 }
@@ -1406,10 +2025,6 @@ function hideError() {
 }
 
 
-// ======================================================
-// CLEAR RESULTS
-// ======================================================
-
 function clearResults() {
 
     document
@@ -1421,9 +2036,20 @@ function clearResults() {
             "hidden"
         );
 
+
     document
         .getElementById(
             "jobResultsSection"
+        )
+        .classList
+        .add(
+            "hidden"
+        );
+
+
+    document
+        .getElementById(
+            "comparisonSection"
         )
         .classList
         .add(

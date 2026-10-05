@@ -33,9 +33,7 @@
 
         <main class="container">
 
-            <!-- ====================================== -->
             <!-- HERO -->
-            <!-- ====================================== -->
 
             <section class="hero">
 
@@ -49,16 +47,14 @@
 
                 <p>
                     Analyze your skills, discover suitable careers,
-                    identify skill gaps, and find what you should
-                    learn next.
+                    identify skill gaps, simulate learning impact,
+                    compare career paths, and build your roadmap.
                 </p>
 
             </section>
 
 
-            <!-- ====================================== -->
             <!-- MODE SWITCH -->
-            <!-- ====================================== -->
 
             <section class="mode-switch">
 
@@ -81,9 +77,7 @@
             </section>
 
 
-            <!-- ====================================== -->
-            <!-- INPUT -->
-            <!-- ====================================== -->
+            <!-- INPUT CARD -->
 
             <section class="input-card">
 
@@ -139,27 +133,21 @@
             </section>
 
 
-            <!-- ====================================== -->
             <!-- LOADING -->
-            <!-- ====================================== -->
 
             <div
                 id="loading"
                 class="loading hidden"
             >
-
                 <div class="spinner"></div>
 
                 <p>
                     Analyzing your skills...
                 </p>
-
             </div>
 
 
-            <!-- ====================================== -->
             <!-- ERROR -->
-            <!-- ====================================== -->
 
             <div
                 id="errorBox"
@@ -167,9 +155,7 @@
             ></div>
 
 
-            <!-- ====================================== -->
             <!-- CAREER RESULTS -->
-            <!-- ====================================== -->
 
             <section
                 id="careerResultsSection"
@@ -206,9 +192,45 @@
             </section>
 
 
-            <!-- ====================================== -->
+            <!-- CAREER COMPARISON -->
+
+            <section
+                id="comparisonSection"
+                class="results-section hidden"
+            >
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            CAREER DECISION SUPPORT
+                        </span>
+
+                        <h2>
+                            Career Comparison
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="comparisonRecommendation"
+                    class="comparison-recommendation"
+                ></div>
+
+
+                <div
+                    id="comparisonResults"
+                    class="comparison-grid"
+                ></div>
+
+            </section>
+
+
             <!-- JOB RESULTS -->
-            <!-- ====================================== -->
 
             <section
                 id="jobResultsSection"
@@ -267,6 +289,48 @@
             </section>
 
         </main>
+
+
+        <!-- FLOATING COMPARE BAR -->
+
+        <div
+            id="compareBar"
+            class="compare-bar hidden"
+        >
+
+            <div>
+
+                <strong>
+                    Compare Careers
+                </strong>
+
+                <span id="compareCount">
+                    0 careers selected
+                </span>
+
+            </div>
+
+
+            <div class="compare-bar-actions">
+
+                <button
+                    class="clear-compare-button"
+                    onclick="clearCareerSelection()"
+                >
+                    Clear
+                </button>
+
+                <button
+                    id="compareSelectedButton"
+                    class="compare-selected-button"
+                    onclick="compareSelectedCareers()"
+                >
+                    Compare Selected
+                </button>
+
+            </div>
+
+        </div>
 
     </div>
 

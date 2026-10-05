@@ -15,7 +15,11 @@ from pydantic import BaseModel
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SRC_PATH = PROJECT_ROOT / "src"
 
-sys.path.append(str(SRC_PATH))
+if str(SRC_PATH) not in sys.path:
+    sys.path.insert(
+        0,
+        str(SRC_PATH)
+    )
 
 
 # ==================================================
@@ -30,6 +34,7 @@ from skill_matcher import (
 from career_discovery import discover_careers
 from skill_impact import rank_skill_impacts
 from career_roadmap import build_career_roadmap
+from career_compare import compare_careers
 
 
 # ==================================================
@@ -41,9 +46,10 @@ app = FastAPI(
     description=(
         "AI-powered career intelligence platform for "
         "job matching, career discovery, skill-gap analysis, "
-        "skill impact simulation, and career roadmaps."
+        "skill impact simulation, personalized career roadmaps, "
+        "and career comparison."
     ),
-    version="2.2.0"
+    version="2.3.0"
 )
 
 
@@ -102,15 +108,24 @@ class CareerRoadmapRequest(BaseModel):
     limit: int = 6
 
 
+class CareerCompareRequest(BaseModel):
+    skills: list[str]
+    occupations: list[str]
+
+
 # ==================================================
 # HOME
 # ==================================================
 
 @app.get("/")
 def home():
+
     return {
-        "message": "SkillGap AI API is running",
-        "version": "2.2.0"
+        "message":
+            "SkillGap AI API is running",
+
+        "version":
+            "2.3.0"
     }
 
 
@@ -120,9 +135,13 @@ def home():
 
 @app.get("/health")
 def health():
+
     return {
-        "status": "healthy",
-        "jobs_loaded": len(df)
+        "status":
+            "healthy",
+
+        "jobs_loaded":
+            len(df)
     }
 
 
@@ -134,6 +153,7 @@ def health():
 def recommend_jobs(
     request: RecommendationRequest
 ):
+
     user_skills = request.skills
 
     target_role = (
@@ -142,14 +162,15 @@ def recommend_jobs(
         .lower()
     )
 
-    # Original job dataset currently contains
-    # IT-category roles for this endpoint.
+
     jobs = df[
         df["category"]
         == "INFORMATION-TECHNOLOGY"
     ].copy()
 
+
     if target_role:
+
         filtered_jobs = jobs[
             jobs["job_title"]
             .str.lower()
@@ -162,18 +183,24 @@ def recommend_jobs(
         if not filtered_jobs.empty:
             jobs = filtered_jobs
 
+
     results = []
 
+
     for _, job in jobs.iterrows():
+
         required_skills = job[
             "job_skill_set"
         ]
+
 
         if isinstance(
             required_skills,
             str
         ):
+
             try:
+
                 required_skills = (
                     ast.literal_eval(
                         required_skills
@@ -184,18 +211,23 @@ def recommend_jobs(
                 ValueError,
                 SyntaxError
             ):
+
                 continue
+
 
         if not isinstance(
             required_skills,
             (list, tuple, set)
         ):
+
             continue
+
 
         match_result = calculate_skill_match(
             user_skills,
             required_skills
         )
+
 
         results.append({
             "job_title":
@@ -217,6 +249,7 @@ def recommend_jobs(
                 ]
         })
 
+
     results = sorted(
         results,
         key=lambda item:
@@ -224,30 +257,46 @@ def recommend_jobs(
         reverse=True
     )
 
+
     positive_results = [
         item
         for item in results
         if item["match_score"] > 0
     ]
 
-    if positive_results:
-        top_jobs = positive_results[:5]
-    else:
-        top_jobs = results[:5]
 
-    # ------------------------------------------
+    if positive_results:
+
+        top_jobs = (
+            positive_results[:5]
+        )
+
+    else:
+
+        top_jobs = (
+            results[:5]
+        )
+
+
+    # ==================================================
     # LEARN NEXT
-    # ------------------------------------------
+    # ==================================================
 
     skill_frequency = {}
 
+
     for job in top_jobs:
+
         for skill in job[
             "missing_skills"
         ]:
-            normalized_skill = normalize_skill(
-                skill
+
+            normalized_skill = (
+                normalize_skill(
+                    skill
+                )
             )
+
 
             skill_frequency[
                 normalized_skill
@@ -259,6 +308,7 @@ def recommend_jobs(
                 + 1
             )
 
+
     learning_skills = sorted(
         skill_frequency.items(),
         key=lambda item:
@@ -266,14 +316,20 @@ def recommend_jobs(
         reverse=True
     )[:5]
 
+
     learn_next = [
         {
-            "skill": skill,
-            "frequency": frequency
+            "skill":
+                skill,
+
+            "frequency":
+                frequency
         }
+
         for skill, frequency
         in learning_skills
     ]
+
 
     return {
         "mode":
@@ -301,6 +357,7 @@ def recommend_jobs(
 def discover_career_options(
     request: CareerDiscoveryRequest
 ):
+
     limit = max(
         1,
         min(
@@ -309,10 +366,12 @@ def discover_career_options(
         )
     )
 
+
     career_matches = discover_careers(
         request.skills,
         limit=limit
     )
+
 
     return {
         "mode":
@@ -339,6 +398,7 @@ def discover_career_options(
 def skill_impact_analysis(
     request: SkillImpactRequest
 ):
+
     limit = max(
         1,
         min(
@@ -347,13 +407,12 @@ def skill_impact_analysis(
         )
     )
 
-    result = rank_skill_impacts(
+
+    return rank_skill_impacts(
         request.skills,
         request.occupation,
         limit=limit
     )
-
-    return result
 
 
 # ==================================================
@@ -364,6 +423,7 @@ def skill_impact_analysis(
 def career_roadmap_analysis(
     request: CareerRoadmapRequest
 ):
+
     limit = max(
         1,
         min(
@@ -372,10 +432,44 @@ def career_roadmap_analysis(
         )
     )
 
-    result = build_career_roadmap(
+
+    return build_career_roadmap(
         request.skills,
         request.occupation,
         limit=limit
     )
 
-    return result
+
+# ==================================================
+# CAREER COMPARISON
+# ==================================================
+
+@app.post("/compare-careers")
+def compare_career_options(
+    request: CareerCompareRequest
+):
+
+    if len(
+        request.occupations
+    ) < 2:
+
+        return {
+            "error":
+                "Please provide at least two careers to compare."
+        }
+
+
+    if len(
+        request.occupations
+    ) > 5:
+
+        return {
+            "error":
+                "You can compare a maximum of five careers at once."
+        }
+
+
+    return compare_careers(
+        request.skills,
+        request.occupations
+    )
