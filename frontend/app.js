@@ -1,10 +1,12 @@
 let currentMode = "career";
-
 let selectedCareers = [];
+
+const API_BASE =
+    "http://127.0.0.1:8000";
 
 
 // ======================================================
-// SWITCH MODE
+// MODE
 // ======================================================
 
 function switchMode(mode) {
@@ -39,17 +41,10 @@ function switchMode(mode) {
 
     if (mode === "career") {
 
-        careerButton.classList.add(
-            "active"
-        );
+        careerButton.classList.add("active");
+        jobButton.classList.remove("active");
 
-        jobButton.classList.remove(
-            "active"
-        );
-
-        targetRoleGroup.classList.add(
-            "hidden"
-        );
+        targetRoleGroup.classList.add("hidden");
 
         analyzeButton.textContent =
             "Discover My Careers";
@@ -59,17 +54,10 @@ function switchMode(mode) {
 
     } else {
 
-        jobButton.classList.add(
-            "active"
-        );
+        jobButton.classList.add("active");
+        careerButton.classList.remove("active");
 
-        careerButton.classList.remove(
-            "active"
-        );
-
-        targetRoleGroup.classList.remove(
-            "hidden"
-        );
+        targetRoleGroup.classList.remove("hidden");
 
         analyzeButton.textContent =
             "Find Matching Jobs";
@@ -78,47 +66,37 @@ function switchMode(mode) {
             "Enter a target role and we'll analyze your job match and missing skills.";
     }
 
-
     clearCareerSelection();
-
     clearResults();
 }
 
 
 // ======================================================
-// GET SKILLS
+// SKILLS
 // ======================================================
 
 function getSkills() {
 
-    const skillsText =
-        document.getElementById(
-            "skills"
-        ).value;
-
-
-    return skillsText
+    return document
+        .getElementById("skills")
+        .value
         .split(",")
         .map(
-            skill =>
-                skill.trim()
+            skill => skill.trim()
         )
         .filter(
-            skill =>
-                skill.length > 0
+            skill => skill.length > 0
         );
 }
 
 
 // ======================================================
-// MAIN ANALYSIS
+// ANALYZE
 // ======================================================
 
 async function analyzeSkills() {
 
-    const skills =
-        getSkills();
-
+    const skills = getSkills();
 
     if (skills.length === 0) {
 
@@ -129,15 +107,10 @@ async function analyzeSkills() {
         return;
     }
 
-
     hideError();
-
     clearCareerSelection();
-
     clearResults();
-
     showLoading();
-
 
     try {
 
@@ -156,12 +129,10 @@ async function analyzeSkills() {
 
     } catch (error) {
 
-        console.error(
-            error
-        );
+        console.error(error);
 
         showError(
-            "Unable to connect to SkillGap AI API. Make sure the FastAPI backend is running."
+            "Unable to connect to SkillGap AI API."
         );
 
     } finally {
@@ -175,45 +146,28 @@ async function analyzeSkills() {
 // DISCOVER CAREERS
 // ======================================================
 
-async function discoverCareers(
-    skills
-) {
+async function discoverCareers(skills) {
 
     const response =
         await fetch(
-            "http://127.0.0.1:8000/discover-careers",
+            `${API_BASE}/discover-careers`,
             {
-                method:
-                    "POST",
+                method: "POST",
 
                 headers: {
                     "Content-Type":
                         "application/json"
                 },
 
-                body:
-                    JSON.stringify({
-                        skills:
-                            skills,
-
-                        limit:
-                            10
-                    })
+                body: JSON.stringify({
+                    skills,
+                    limit: 10
+                })
             }
         );
 
-
-    if (!response.ok) {
-
-        throw new Error(
-            "Career discovery request failed."
-        );
-    }
-
-
     const data =
         await response.json();
-
 
     renderCareerResults(
         data
@@ -222,118 +176,36 @@ async function discoverCareers(
 
 
 // ======================================================
-// JOB MATCH
+// RENDER CAREERS
 // ======================================================
 
-async function matchJobs(
-    skills
-) {
-
-    const targetRole =
-        document
-        .getElementById(
-            "targetRole"
-        )
-        .value
-        .trim();
-
-
-    const response =
-        await fetch(
-            "http://127.0.0.1:8000/recommend",
-            {
-                method:
-                    "POST",
-
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
-
-                body:
-                    JSON.stringify({
-                        skills:
-                            skills,
-
-                        target_role:
-                            targetRole
-                    })
-            }
-        );
-
-
-    if (!response.ok) {
-
-        throw new Error(
-            "Job recommendation request failed."
-        );
-    }
-
-
-    const data =
-        await response.json();
-
-
-    renderJobResults(
-        data
-    );
-}
-
-
-// ======================================================
-// CAREER RESULT CARDS
-// ======================================================
-
-function renderCareerResults(
-    data
-) {
+function renderCareerResults(data) {
 
     const section =
         document.getElementById(
             "careerResultsSection"
         );
 
-
     const container =
         document.getElementById(
             "careerResults"
         );
-
 
     const count =
         document.getElementById(
             "careerCount"
         );
 
-
-    container.innerHTML =
-        "";
-
+    container.innerHTML = "";
 
     count.textContent =
         `${data.total_results} careers found`;
 
 
-    if (
-        !data.career_matches ||
-        data.career_matches.length === 0
-    ) {
-
-        container.innerHTML = `
-            <div class="career-card">
-                No suitable careers were found.
-            </div>
-        `;
-
-        section.classList.remove(
-            "hidden"
-        );
-
-        return;
-    }
-
-
-    data.career_matches.forEach(
+    (
+        data.career_matches || []
+    )
+    .forEach(
         (career, index) => {
 
             const card =
@@ -341,20 +213,15 @@ function renderCareerResults(
                     "article"
                 );
 
-
             card.className =
                 "career-card";
 
-
-            const confidenceClass =
-                String(
-                    career.confidence
-                )
-                .toLowerCase();
-
+            const safeOccupation =
+                escapeHTML(
+                    career.occupation
+                );
 
             const matchedSkills = [
-
                 ...(
                     career
                     .matched_essential_skills
@@ -367,13 +234,6 @@ function renderCareerResults(
                     || []
                 )
             ];
-
-
-            const safeOccupation =
-                escapeHTML(
-                    career.occupation
-                );
-
 
             card.innerHTML = `
 
@@ -390,7 +250,11 @@ function renderCareerResults(
                         </h3>
 
                         <span
-                            class="confidence ${confidenceClass}"
+                            class="confidence ${
+                                String(
+                                    career.confidence
+                                ).toLowerCase()
+                            }"
                         >
                             ${escapeHTML(
                                 career.confidence
@@ -400,28 +264,20 @@ function renderCareerResults(
 
                     </div>
 
-
                     <div class="fit-score">
-
-                        ${
-                            career
-                            .career_fit_score
-                        }/100
-
+                        ${career.career_fit_score}/100
                     </div>
 
                 </div>
 
 
                 <p class="description">
-
                     ${escapeHTML(
                         shortenText(
                             career.description,
                             220
                         )
                     )}
-
                 </p>
 
 
@@ -434,29 +290,21 @@ function renderCareerResults(
                         </span>
 
                         <span>
-                            ${
-                                career
-                                .essential_coverage
-                            }%
+                            ${career.essential_coverage}%
                         </span>
 
                     </div>
-
 
                     <div class="progress-track">
 
                         <div
                             class="progress-fill"
-
                             style="
                                 width:
-                                ${
-                                    Math.min(
-                                        career
-                                        .essential_coverage,
-                                        100
-                                    )
-                                }%;
+                                ${Math.min(
+                                    career.essential_coverage,
+                                    100
+                                )}%;
                             "
                         ></div>
 
@@ -473,13 +321,11 @@ function renderCareerResults(
 
                     <div class="tag-list">
 
-                        ${
-                            renderTags(
-                                matchedSkills,
-                                "match",
-                                "No direct skill matches."
-                            )
-                        }
+                        ${renderTags(
+                            matchedSkills,
+                            "match",
+                            "No direct matches"
+                        )}
 
                     </div>
 
@@ -494,13 +340,11 @@ function renderCareerResults(
 
                     <div class="tag-list">
 
-                        ${
-                            renderTags(
-                                career.key_gaps,
-                                "gap",
-                                "No major gaps identified."
-                            )
-                        }
+                        ${renderTags(
+                            career.key_gaps,
+                            "gap",
+                            "No major gaps"
+                        )}
 
                     </div>
 
@@ -523,10 +367,17 @@ function renderCareerResults(
 
 
                 <button
-                    class="compare-career-button"
-
+                    class="save-plan-button"
                     data-occupation="${safeOccupation}"
+                    onclick="saveCareerPlanFromButton(this)"
+                >
+                    Save Career Plan
+                </button>
 
+
+                <button
+                    class="compare-career-button"
+                    data-occupation="${safeOccupation}"
                     onclick="toggleCareerComparison(this)"
                 >
                     + Add to Compare
@@ -535,11 +386,8 @@ function renderCareerResults(
 
                 <button
                     class="impact-button"
-
                     data-occupation="${safeOccupation}"
-
                     data-index="${index}"
-
                     onclick="showSkillImpactFromButton(this)"
                 >
                     See Skill Impact
@@ -554,11 +402,8 @@ function renderCareerResults(
 
                 <button
                     class="roadmap-button"
-
                     data-occupation="${safeOccupation}"
-
                     data-index="${index}"
-
                     onclick="showRoadmapFromButton(this)"
                 >
                     Build My 90-Day Roadmap
@@ -571,13 +416,11 @@ function renderCareerResults(
                 ></div>
             `;
 
-
             container.appendChild(
                 card
             );
         }
     );
-
 
     section.classList.remove(
         "hidden"
@@ -586,7 +429,690 @@ function renderCareerResults(
 
 
 // ======================================================
-// CAREER SELECTION
+// SAVE PLAN
+// ======================================================
+
+async function saveCareerPlanFromButton(
+    button
+) {
+
+    const occupation =
+        button.dataset.occupation;
+
+    const skills =
+        getSkills();
+
+
+    if (skills.length === 0) {
+
+        showError(
+            "Enter your skills before saving a career plan."
+        );
+
+        return;
+    }
+
+
+    const originalText =
+        button.textContent;
+
+    button.disabled = true;
+
+    button.textContent =
+        "Saving Plan...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_BASE}/career-plans`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        skills,
+                        occupation
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (data.error) {
+
+            throw new Error(
+                data.error
+            );
+        }
+
+
+        button.textContent =
+            "✓ Career Plan Saved";
+
+        button.classList.add(
+            "saved"
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        button.textContent =
+            "Save Failed";
+
+    } finally {
+
+        button.disabled =
+            false;
+
+        setTimeout(
+            () => {
+
+                if (
+                    !button.classList.contains(
+                        "saved"
+                    )
+                ) {
+                    button.textContent =
+                        originalText;
+                }
+
+            },
+            2000
+        );
+    }
+}
+
+
+// ======================================================
+// DASHBOARD
+// ======================================================
+
+async function loadCareerDashboard() {
+
+    clearCareerSelection();
+    clearResults();
+    hideError();
+
+    const section =
+        document.getElementById(
+            "dashboardSection"
+        );
+
+    const plansContainer =
+        document.getElementById(
+            "dashboardPlans"
+        );
+
+    const summary =
+        document.getElementById(
+            "dashboardSummary"
+        );
+
+
+    section.classList.remove(
+        "hidden"
+    );
+
+    plansContainer.innerHTML = `
+        <div class="dashboard-loading">
+            <div class="spinner"></div>
+            <span>
+                Loading saved career plans...
+            </span>
+        </div>
+    `;
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_BASE}/career-plans`
+            );
+
+
+        const data =
+            await response.json();
+
+
+        renderDashboard(
+            data
+        );
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        plansContainer.innerHTML = `
+            <div class="error-box">
+                Unable to load career dashboard.
+            </div>
+        `;
+    }
+}
+
+
+function renderDashboard(data) {
+
+    const plans =
+        data.plans || [];
+
+    const container =
+        document.getElementById(
+            "dashboardPlans"
+        );
+
+    const summary =
+        document.getElementById(
+            "dashboardSummary"
+        );
+
+
+    if (plans.length === 0) {
+
+        summary.innerHTML = "";
+
+        container.innerHTML = `
+            <div class="empty-dashboard">
+
+                <h3>
+                    No saved career plans yet
+                </h3>
+
+                <p>
+                    Discover careers and save one
+                    to start tracking your progress.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    const averageProgress =
+        plans.reduce(
+            (total, plan) =>
+                total +
+                (
+                    plan
+                    .progress_summary
+                    ?.progress_percentage
+                    || 0
+                ),
+            0
+        )
+        /
+        plans.length;
+
+
+    summary.innerHTML = `
+
+        <div class="summary-card">
+
+            <span>
+                Saved Plans
+            </span>
+
+            <strong>
+                ${plans.length}
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                Average Progress
+            </span>
+
+            <strong>
+                ${averageProgress.toFixed(1)}%
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                Active Target
+            </span>
+
+            <strong>
+                ${escapeHTML(
+                    plans[0].occupation
+                )}
+            </strong>
+
+        </div>
+    `;
+
+
+    container.innerHTML =
+        "";
+
+
+    plans.forEach(
+        plan => {
+
+            const card =
+                document.createElement(
+                    "article"
+                );
+
+            card.className =
+                "dashboard-plan-card";
+
+
+            const progress =
+                plan.progress_summary
+                || {
+                    progress_percentage: 0,
+                    completed_tasks: 0,
+                    total_tasks: 0
+                };
+
+
+            card.innerHTML = `
+
+                <div class="dashboard-plan-header">
+
+                    <div>
+
+                        <span class="eyebrow">
+                            SAVED CAREER PLAN
+                        </span>
+
+                        <h3>
+                            ${escapeHTML(
+                                plan.occupation
+                            )}
+                        </h3>
+
+                        <span
+                            class="confidence ${
+                                String(
+                                    plan.confidence
+                                ).toLowerCase()
+                            }"
+                        >
+                            ${escapeHTML(
+                                plan.confidence
+                            )}
+                            Confidence
+                        </span>
+
+                    </div>
+
+
+                    <button
+                        class="delete-plan-button"
+                        onclick="deleteSavedPlan(
+                            ${plan.id}
+                        )"
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+
+                <div class="dashboard-score-grid">
+
+                    <div>
+
+                        <span>
+                            Current Fit
+                        </span>
+
+                        <strong>
+                            ${plan.current_score}/100
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Projected Fit
+                        </span>
+
+                        <strong class="green-value">
+                            ${plan.projected_score}/100
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <span>
+                            Best Next Skill
+                        </span>
+
+                        <strong>
+                            ${escapeHTML(
+                                plan.best_next_skill
+                                || "None"
+                            )}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="dashboard-progress-area">
+
+                    <div class="dashboard-progress-label">
+
+                        <span>
+                            Roadmap Progress
+                        </span>
+
+                        <strong>
+                            ${progress.progress_percentage}%
+                        </strong>
+
+                    </div>
+
+
+                    <div class="dashboard-progress-track">
+
+                        <div
+                            class="dashboard-progress-fill"
+                            style="
+                                width:
+                                ${Math.min(
+                                    progress.progress_percentage,
+                                    100
+                                )}%;
+                            "
+                        ></div>
+
+                    </div>
+
+
+                    <small>
+
+                        ${progress.completed_tasks}
+                        of
+                        ${progress.total_tasks}
+                        tasks completed
+
+                    </small>
+
+                </div>
+
+
+                <div class="dashboard-priority">
+
+                    <h4>
+                        Priority Skills
+                    </h4>
+
+                    <div class="tag-list">
+
+                        ${renderTags(
+                            (
+                                plan.skill_priorities
+                                || []
+                            )
+                            .map(
+                                item => item.skill
+                            ),
+                            "match",
+                            "No priority skills"
+                        )}
+
+                    </div>
+
+                </div>
+
+
+                <div class="dashboard-roadmap">
+
+                    ${renderDashboardStage(
+                        plan,
+                        "30_days",
+                        "30 Days"
+                    )}
+
+                    ${renderDashboardStage(
+                        plan,
+                        "60_days",
+                        "60 Days"
+                    )}
+
+                    ${renderDashboardStage(
+                        plan,
+                        "90_days",
+                        "90 Days"
+                    )}
+
+                </div>
+            `;
+
+
+            container.appendChild(
+                card
+            );
+        }
+    );
+}
+
+
+// ======================================================
+// DASHBOARD ROADMAP
+// ======================================================
+
+function renderDashboardStage(
+    plan,
+    stageKey,
+    title
+) {
+
+    const tasks =
+        plan.progress?.[
+            stageKey
+        ]
+        || [];
+
+
+    const tasksHtml =
+        tasks
+        .map(
+            (
+                task,
+                index
+            ) => `
+
+                <label class="dashboard-task">
+
+                    <input
+                        type="checkbox"
+
+                        ${
+                            task.completed
+                            ? "checked"
+                            : ""
+                        }
+
+                        onchange="
+                            updatePlanTask(
+                                ${plan.id},
+                                '${stageKey}',
+                                ${index},
+                                this.checked
+                            )
+                        "
+                    >
+
+                    <span
+                        class="${
+                            task.completed
+                            ? "completed-task"
+                            : ""
+                        }"
+                    >
+                        ${escapeHTML(
+                            task.title
+                        )}
+                    </span>
+
+                </label>
+            `
+        )
+        .join("");
+
+
+    return `
+
+        <div class="dashboard-stage">
+
+            <div class="dashboard-stage-title">
+                ${title}
+            </div>
+
+            <div class="dashboard-task-list">
+
+                ${
+                    tasksHtml
+                    ||
+                    "<p>No tasks</p>"
+                }
+
+            </div>
+
+        </div>
+    `;
+}
+
+
+// ======================================================
+// UPDATE PROGRESS
+// ======================================================
+
+async function updatePlanTask(
+    planId,
+    stage,
+    taskIndex,
+    completed
+) {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_BASE}/career-plans/${planId}/progress`,
+                {
+                    method:
+                        "PATCH",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            stage,
+                            task_index:
+                                taskIndex,
+                            completed
+                        })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (data.error) {
+
+            throw new Error(
+                data.error
+            );
+        }
+
+
+        await loadCareerDashboard();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        showError(
+            "Unable to update progress."
+        );
+    }
+}
+
+
+// ======================================================
+// DELETE PLAN
+// ======================================================
+
+async function deleteSavedPlan(
+    planId
+) {
+
+    const confirmed =
+        window.confirm(
+            "Delete this saved career plan?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await fetch(
+            `${API_BASE}/career-plans/${planId}`,
+            {
+                method:
+                    "DELETE"
+            }
+        );
+
+
+        await loadCareerDashboard();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        showError(
+            "Unable to delete career plan."
+        );
+    }
+}
+
+
+// ======================================================
+// CAREER COMPARISON
 // ======================================================
 
 function toggleCareerComparison(
@@ -597,18 +1123,16 @@ function toggleCareerComparison(
         button.dataset.occupation;
 
 
-    const exists =
+    if (
         selectedCareers.includes(
             occupation
-        );
-
-
-    if (exists) {
+        )
+    ) {
 
         selectedCareers =
             selectedCareers.filter(
-                career =>
-                    career !== occupation
+                item =>
+                    item !== occupation
             );
 
 
@@ -627,14 +1151,11 @@ function toggleCareerComparison(
         ) {
 
             showError(
-                "You can compare a maximum of 3 careers at once."
+                "You can compare a maximum of 3 careers."
             );
 
             return;
         }
-
-
-        hideError();
 
 
         selectedCareers.push(
@@ -656,10 +1177,6 @@ function toggleCareerComparison(
 }
 
 
-// ======================================================
-// COMPARE BAR
-// ======================================================
-
 function updateCompareBar() {
 
     const bar =
@@ -667,12 +1184,10 @@ function updateCompareBar() {
             "compareBar"
         );
 
-
     const count =
         document.getElementById(
             "compareCount"
         );
-
 
     const button =
         document.getElementById(
@@ -688,31 +1203,16 @@ function updateCompareBar() {
         selectedCareers.length < 2;
 
 
-    if (
+    bar.classList.toggle(
+        "hidden",
         selectedCareers.length === 0
-    ) {
-
-        bar.classList.add(
-            "hidden"
-        );
-
-    } else {
-
-        bar.classList.remove(
-            "hidden"
-        );
-    }
+    );
 }
 
 
-// ======================================================
-// CLEAR CAREER SELECTION
-// ======================================================
-
 function clearCareerSelection() {
 
-    selectedCareers =
-        [];
+    selectedCareers = [];
 
 
     document
@@ -733,22 +1233,8 @@ function clearCareerSelection() {
 
 
     updateCompareBar();
-
-
-    document
-        .getElementById(
-            "comparisonSection"
-        )
-        .classList
-        .add(
-            "hidden"
-        );
 }
 
-
-// ======================================================
-// COMPARE CAREERS
-// ======================================================
 
 async function compareSelectedCareers() {
 
@@ -756,127 +1242,53 @@ async function compareSelectedCareers() {
         selectedCareers.length < 2
     ) {
 
-        showError(
-            "Select at least two careers to compare."
-        );
-
         return;
     }
 
 
-    hideError();
+    const response =
+        await fetch(
+            `${API_BASE}/compare-careers`,
+            {
+                method: "POST",
 
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
 
-    const button =
-        document.getElementById(
-            "compareSelectedButton"
+                body: JSON.stringify({
+                    skills:
+                        getSkills(),
+
+                    occupations:
+                        selectedCareers
+                })
+            }
         );
 
 
-    button.disabled =
-        true;
+    const data =
+        await response.json();
 
 
-    button.textContent =
-        "Comparing...";
-
-
-    try {
-
-        const response =
-            await fetch(
-                "http://127.0.0.1:8000/compare-careers",
-                {
-                    method:
-                        "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            skills:
-                                getSkills(),
-
-                            occupations:
-                                selectedCareers
-                        })
-                }
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "Career comparison request failed."
-            );
-        }
-
-
-        const data =
-            await response.json();
-
-
-        if (data.error) {
-
-            showError(
-                data.error
-            );
-
-            return;
-        }
-
-
-        renderCareerComparison(
-            data
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            error
-        );
-
-
-        showError(
-            "Unable to compare careers."
-        );
-
-    } finally {
-
-        button.disabled =
-            false;
-
-
-        button.textContent =
-            "Compare Selected";
-    }
+    renderCareerComparison(
+        data
+    );
 }
 
 
-// ======================================================
-// RENDER CAREER COMPARISON
-// ======================================================
-
-function renderCareerComparison(
-    data
-) {
+function renderCareerComparison(data) {
 
     const section =
         document.getElementById(
             "comparisonSection"
         );
 
-
     const recommendation =
         document.getElementById(
             "comparisonRecommendation"
         );
-
 
     const container =
         document.getElementById(
@@ -908,7 +1320,10 @@ function renderCareerComparison(
         "";
 
 
-    data.comparisons.forEach(
+    (
+        data.comparisons || []
+    )
+    .forEach(
         career => {
 
             const card =
@@ -921,13 +1336,11 @@ function renderCareerComparison(
                 "comparison-card";
 
 
-            const isWinner =
+            if (
                 career.occupation
                 ===
-                data.recommended_career;
-
-
-            if (isWinner) {
+                data.recommended_career
+            ) {
 
                 card.classList.add(
                     "winner"
@@ -937,21 +1350,9 @@ function renderCareerComparison(
 
             card.innerHTML = `
 
-                ${
-                    isWinner
-                    ? `
-                        <div class="winner-badge">
-                            Best Choice
-                        </div>
-                    `
-                    : ""
-                }
-
-
                 <div class="comparison-rank">
                     #${career.rank}
                 </div>
-
 
                 <h3>
                     ${escapeHTML(
@@ -959,18 +1360,14 @@ function renderCareerComparison(
                     )}
                 </h3>
 
-
                 <p class="comparison-description">
-
                     ${escapeHTML(
                         shortenText(
                             career.description,
                             150
                         )
                     )}
-
                 </p>
-
 
                 <div class="comparison-score">
 
@@ -983,26 +1380,6 @@ function renderCareerComparison(
                     </strong>
 
                 </div>
-
-
-                <div class="comparison-progress">
-
-                    <div
-                        class="comparison-progress-fill"
-
-                        style="
-                            width:
-                            ${
-                                Math.min(
-                                    career.career_fit_score,
-                                    100
-                                )
-                            }%;
-                        "
-                    ></div>
-
-                </div>
-
 
                 <div class="comparison-metric">
 
@@ -1018,7 +1395,6 @@ function renderCareerComparison(
 
                 </div>
 
-
                 <div class="comparison-metric">
 
                     <span>
@@ -1031,7 +1407,6 @@ function renderCareerComparison(
 
                 </div>
 
-
                 <div class="comparison-metric">
 
                     <span>
@@ -1039,30 +1414,13 @@ function renderCareerComparison(
                     </span>
 
                     <strong>
-                        ${
+                        ${escapeHTML(
                             career.best_next_skill
-                            ? escapeHTML(
-                                career.best_next_skill
-                            )
-                            : "None"
-                        }
+                            || "None"
+                        )}
                     </strong>
 
                 </div>
-
-
-                <div class="comparison-metric">
-
-                    <span>
-                        Potential Gain
-                    </span>
-
-                    <strong class="positive-value">
-                        +${career.potential_improvement}
-                    </strong>
-
-                </div>
-
 
                 <div class="projected-score-box">
 
@@ -1073,27 +1431,6 @@ function renderCareerComparison(
                     <strong>
                         ${career.projected_score}/100
                     </strong>
-
-                </div>
-
-
-                <div class="card-section">
-
-                    <h4>
-                        Key Gaps
-                    </h4>
-
-                    <div class="tag-list">
-
-                        ${
-                            renderTags(
-                                career.key_gaps,
-                                "gap",
-                                "No major gaps"
-                            )
-                        }
-
-                    </div>
 
                 </div>
             `;
@@ -1113,10 +1450,7 @@ function renderCareerComparison(
 
     section.scrollIntoView({
         behavior:
-            "smooth",
-
-        block:
-            "start"
+            "smooth"
     });
 }
 
@@ -1149,27 +1483,20 @@ async function showSkillImpact(
         );
 
 
-    if (!panel) {
-        return;
-    }
-
-
     if (
+        panel.dataset.loaded === "true"
+        &&
         !panel.classList.contains(
             "hidden"
         )
-        &&
-        panel.dataset.loaded === "true"
     ) {
 
         panel.classList.add(
             "hidden"
         );
 
-
         button.textContent =
             "See Skill Impact";
-
 
         return;
     }
@@ -1182,211 +1509,137 @@ async function showSkillImpact(
 
     panel.innerHTML = `
         <div class="impact-loading">
-
             <div class="mini-spinner"></div>
-
-            <span>
-                Calculating highest-impact skills...
-            </span>
-
+            Calculating skill impact...
         </div>
     `;
 
 
-    button.disabled =
-        true;
+    const response =
+        await fetch(
+            `${API_BASE}/skill-impact`,
+            {
+                method:
+                    "POST",
 
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
 
-    try {
+                body:
+                    JSON.stringify({
+                        skills:
+                            getSkills(),
 
-        const response =
-            await fetch(
-                "http://127.0.0.1:8000/skill-impact",
-                {
-                    method:
-                        "POST",
+                        occupation,
 
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            skills:
-                                getSkills(),
-
-                            occupation:
-                                occupation,
-
-                            limit:
-                                5
-                        })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        let html = `
-
-            <div class="impact-header">
-
-                <div>
-
-                    <span class="eyebrow">
-                        SKILL IMPACT SIMULATOR
-                    </span>
-
-                    <h4>
-                        What should you learn next?
-                    </h4>
-
-                </div>
-
-
-                <div class="current-impact-score">
-
-                    <span>
-                        Current Fit
-                    </span>
-
-                    <strong>
-                        ${data.current_score}/100
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-            <p class="impact-intro">
-
-                Skills ranked by their predicted
-                impact on your fit for
-
-                <strong>
-                    ${escapeHTML(
-                        data.occupation
-                    )}
-                </strong>.
-
-            </p>
-
-
-            <div class="impact-list">
-        `;
-
-
-        (
-            data.best_skills_to_learn
-            || []
-        )
-        .forEach(
-            (item, skillIndex) => {
-
-                html += `
-
-                    <div class="impact-item">
-
-                        <div class="impact-rank">
-                            ${skillIndex + 1}
-                        </div>
-
-
-                        <div class="impact-skill-info">
-
-                            <strong>
-                                ${escapeHTML(
-                                    item.skill
-                                )}
-                            </strong>
-
-
-                            <div class="impact-score-change">
-
-                                <span>
-                                    ${item.current_score}
-                                </span>
-
-                                <span>
-                                    →
-                                </span>
-
-                                <span>
-                                    ${item.new_score}
-                                </span>
-
-                            </div>
-
-
-                            <small>
-
-                                New confidence:
-                                ${escapeHTML(
-                                    item.new_confidence
-                                )}
-
-                            </small>
-
-                        </div>
-
-
-                        <div class="impact-gain">
-
-                            +${item.improvement}
-
-                        </div>
-
-                    </div>
-                `;
+                        limit:
+                            5
+                    })
             }
         );
 
 
-        html += `
+    const data =
+        await response.json();
+
+
+    let html = `
+
+        <div class="impact-header">
+
+            <div>
+
+                <span class="eyebrow">
+                    SKILL IMPACT SIMULATOR
+                </span>
+
+                <h4>
+                    What should you learn next?
+                </h4>
+
             </div>
-        `;
+
+            <div class="current-impact-score">
+
+                <span>
+                    Current Fit
+                </span>
+
+                <strong>
+                    ${data.current_score}/100
+                </strong>
+
+            </div>
+
+        </div>
+
+        <div class="impact-list">
+    `;
 
 
-        panel.innerHTML =
-            html;
+    (
+        data.best_skills_to_learn
+        || []
+    )
+    .forEach(
+        (item, i) => {
+
+            html += `
+
+                <div class="impact-item">
+
+                    <div class="impact-rank">
+                        ${i + 1}
+                    </div>
+
+                    <div class="impact-skill-info">
+
+                        <strong>
+                            ${escapeHTML(
+                                item.skill
+                            )}
+                        </strong>
+
+                        <div class="impact-score-change">
+                            ${item.current_score}
+                            →
+                            ${item.new_score}
+                        </div>
+
+                    </div>
+
+                    <div class="impact-gain">
+                        +${item.improvement}
+                    </div>
+
+                </div>
+            `;
+        }
+    );
 
 
-        panel.dataset.loaded =
-            "true";
+    html += `
+        </div>
+    `;
 
 
-        button.textContent =
-            "Hide Skill Impact";
+    panel.innerHTML =
+        html;
 
 
-    } catch (error) {
-
-        console.error(
-            error
-        );
+    panel.dataset.loaded =
+        "true";
 
 
-        panel.innerHTML = `
-            <p class="impact-error">
-                Unable to calculate skill impact.
-            </p>
-        `;
-
-    } finally {
-
-        button.disabled =
-            false;
-    }
+    button.textContent =
+        "Hide Skill Impact";
 }
 
 
 // ======================================================
-// CAREER ROADMAP
+// ROADMAP
 // ======================================================
 
 function showRoadmapFromButton(
@@ -1413,27 +1666,20 @@ async function showCareerRoadmap(
         );
 
 
-    if (!panel) {
-        return;
-    }
-
-
     if (
+        panel.dataset.loaded === "true"
+        &&
         !panel.classList.contains(
             "hidden"
         )
-        &&
-        panel.dataset.loaded === "true"
     ) {
 
         panel.classList.add(
             "hidden"
         );
 
-
         button.textContent =
             "Build My 90-Day Roadmap";
-
 
         return;
     }
@@ -1444,222 +1690,111 @@ async function showCareerRoadmap(
     );
 
 
-    panel.innerHTML = `
+    const response =
+        await fetch(
+            `${API_BASE}/career-roadmap`,
+            {
+                method: "POST",
 
-        <div class="roadmap-loading">
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
 
-            <div class="mini-spinner"></div>
+                body: JSON.stringify({
+                    skills:
+                        getSkills(),
 
-            <span>
-                Building your roadmap...
-            </span>
+                    occupation,
 
-        </div>
-    `;
-
-
-    button.disabled =
-        true;
-
-
-    try {
-
-        const response =
-            await fetch(
-                "http://127.0.0.1:8000/career-roadmap",
-                {
-                    method:
-                        "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            skills:
-                                getSkills(),
-
-                            occupation:
-                                occupation,
-
-                            limit:
-                                6
-                        })
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        const roadmap =
-            data.roadmap
-            || {};
-
-
-        panel.innerHTML = `
-
-            <div class="roadmap-header">
-
-                <div>
-
-                    <span class="eyebrow">
-                        PERSONALIZED ROADMAP
-                    </span>
-
-                    <h4>
-                        30 / 60 / 90 Day Plan
-                    </h4>
-
-                </div>
-
-
-                <div class="roadmap-score">
-
-                    <span>
-                        Current Fit
-                    </span>
-
-                    <strong>
-                        ${data.current_score}/100
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-            <div class="roadmap-timeline">
-
-                ${renderRoadmapStage(
-                    "30 Days",
-                    "Foundation",
-                    roadmap["30_days"] || []
-                )}
-
-                ${renderRoadmapStage(
-                    "60 Days",
-                    "Build & Practice",
-                    roadmap["60_days"] || []
-                )}
-
-                ${renderRoadmapStage(
-                    "90 Days",
-                    "Portfolio & Career",
-                    roadmap["90_days"] || []
-                )}
-
-            </div>
-        `;
-
-
-        panel.dataset.loaded =
-            "true";
-
-
-        button.textContent =
-            "Hide 90-Day Roadmap";
-
-
-    } catch (error) {
-
-        console.error(
-            error
+                    limit:
+                        6
+                })
+            }
         );
 
 
-        panel.innerHTML = `
-            <p class="roadmap-error">
-                Unable to build roadmap.
-            </p>
-        `;
+    const data =
+        await response.json();
 
-    } finally {
 
-        button.disabled =
-            false;
-    }
+    panel.innerHTML = `
+
+        <div class="roadmap-header">
+
+            <span class="eyebrow">
+                PERSONALIZED ROADMAP
+            </span>
+
+            <h4>
+                30 / 60 / 90 Day Plan
+            </h4>
+
+        </div>
+
+        ${renderRoadmapStage(
+            "30 Days",
+            data.roadmap?.["30_days"]
+            || []
+        )}
+
+        ${renderRoadmapStage(
+            "60 Days",
+            data.roadmap?.["60_days"]
+            || []
+        )}
+
+        ${renderRoadmapStage(
+            "90 Days",
+            data.roadmap?.["90_days"]
+            || []
+        )}
+    `;
+
+
+    panel.dataset.loaded =
+        "true";
+
+
+    button.textContent =
+        "Hide 90-Day Roadmap";
 }
 
 
-// ======================================================
-// ROADMAP STAGE
-// ======================================================
-
 function renderRoadmapStage(
-    period,
-    subtitle,
+    title,
     tasks
 ) {
-
-    const tasksHTML =
-        tasks.length > 0
-        ?
-        tasks
-        .map(
-            task => `
-
-                <li>
-
-                    <span class="roadmap-task-dot"></span>
-
-                    <div>
-
-                        <strong>
-                            ${escapeHTML(
-                                task.title
-                            )}
-                        </strong>
-
-
-                        ${
-                            task.skill
-                            ? `
-                                <small>
-                                    Focus skill:
-                                    ${escapeHTML(
-                                        task.skill
-                                    )}
-                                </small>
-                            `
-                            : ""
-                        }
-
-                    </div>
-
-                </li>
-            `
-        )
-        .join("")
-        :
-        `
-            <li>
-                No tasks generated.
-            </li>
-        `;
-
 
     return `
 
         <div class="roadmap-stage">
 
             <div class="roadmap-stage-badge">
-                ${period}
+                ${title}
             </div>
-
 
             <div class="roadmap-stage-content">
 
-                <h5>
-                    ${subtitle}
-                </h5>
-
                 <ul>
-                    ${tasksHTML}
+
+                    ${tasks
+                        .map(
+                            task => `
+                                <li>
+                                    <span class="roadmap-task-dot"></span>
+
+                                    <div>
+                                        ${escapeHTML(
+                                            task.title
+                                        )}
+                                    </div>
+                                </li>
+                            `
+                        )
+                        .join("")
+                    }
+
                 </ul>
 
             </div>
@@ -1670,24 +1805,61 @@ function renderRoadmapStage(
 
 
 // ======================================================
-// JOB RESULTS
+// JOBS
 // ======================================================
 
-function renderJobResults(
-    data
-) {
+async function matchJobs(skills) {
+
+    const targetRole =
+        document
+        .getElementById(
+            "targetRole"
+        )
+        .value
+        .trim();
+
+
+    const response =
+        await fetch(
+            `${API_BASE}/recommend`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    skills,
+                    target_role:
+                        targetRole
+                })
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    renderJobResults(
+        data
+    );
+}
+
+
+function renderJobResults(data) {
 
     const section =
         document.getElementById(
             "jobResultsSection"
         );
 
-
     const jobsContainer =
         document.getElementById(
             "jobResults"
         );
-
 
     const learningContainer =
         document.getElementById(
@@ -1704,8 +1876,7 @@ function renderJobResults(
 
 
     (
-        data.top_jobs
-        || []
+        data.top_jobs || []
     )
     .forEach(
         (job, index) => {
@@ -1715,10 +1886,8 @@ function renderJobResults(
                     "article"
                 );
 
-
             card.className =
                 "job-card";
-
 
             card.innerHTML = `
 
@@ -1726,18 +1895,15 @@ function renderJobResults(
                     JOB MATCH #${index + 1}
                 </span>
 
-
                 <h3>
                     ${escapeHTML(
                         job.job_title
                     )}
                 </h3>
 
-
                 <div class="job-score">
                     ${job.match_score}%
                 </div>
-
 
                 <div class="card-section">
 
@@ -1747,40 +1913,16 @@ function renderJobResults(
 
                     <div class="tag-list">
 
-                        ${
-                            renderTags(
-                                job.matched_skills,
-                                "match",
-                                "No direct matches"
-                            )
-                        }
-
-                    </div>
-
-                </div>
-
-
-                <div class="card-section">
-
-                    <h4>
-                        Missing Skills
-                    </h4>
-
-                    <div class="tag-list">
-
-                        ${
-                            renderTags(
-                                job.missing_skills,
-                                "gap",
-                                "No major gaps"
-                            )
-                        }
+                        ${renderTags(
+                            job.matched_skills,
+                            "match",
+                            "No direct matches"
+                        )}
 
                     </div>
 
                 </div>
             `;
-
 
             jobsContainer.appendChild(
                 card
@@ -1790,43 +1932,33 @@ function renderJobResults(
 
 
     (
-        data.learn_next
-        || []
+        data.learn_next || []
     )
     .forEach(
-        (item, index) => {
+        item => {
 
             const card =
                 document.createElement(
                     "div"
                 );
 
-
             card.className =
                 "learning-card";
-
 
             card.innerHTML = `
 
                 <strong>
-
-                    ${index + 1}.
                     ${escapeHTML(
                         item.skill
                     )}
-
                 </strong>
 
-
                 <span>
-
                     Required by
                     ${item.frequency}
                     top job(s)
-
                 </span>
             `;
-
 
             learningContainer.appendChild(
                 card
@@ -1842,7 +1974,7 @@ function renderJobResults(
 
 
 // ======================================================
-// TAGS
+// HELPERS
 // ======================================================
 
 function renderTags(
@@ -1873,7 +2005,6 @@ function renderTags(
         )
         .map(
             skill => `
-
                 <span
                     class="tag ${className}"
                 >
@@ -1887,84 +2018,43 @@ function renderTags(
 }
 
 
-// ======================================================
-// HELPERS
-// ======================================================
-
 function shortenText(
     text,
     maxLength
 ) {
 
     if (!text) {
-
-        return (
-            "No description available."
-        );
+        return "No description available.";
     }
-
-
-    if (
-        text.length <= maxLength
-    ) {
-
-        return text;
-    }
-
 
     return (
-        text.slice(
+        text.length <= maxLength
+        ? text
+        : text.slice(
             0,
             maxLength
-        )
-        +
-        "..."
+        ) + "..."
     );
 }
 
 
-function escapeHTML(
-    value
-) {
+function escapeHTML(value) {
 
     if (
         value === null ||
         value === undefined
     ) {
-
         return "";
     }
 
-
-    return String(
-        value
-    )
-    .replaceAll(
-        "&",
-        "&amp;"
-    )
-    .replaceAll(
-        "<",
-        "&lt;"
-    )
-    .replaceAll(
-        ">",
-        "&gt;"
-    )
-    .replaceAll(
-        '"',
-        "&quot;"
-    )
-    .replaceAll(
-        "'",
-        "&#039;"
-    );
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
-
-// ======================================================
-// LOADING / ERROR / CLEAR
-// ======================================================
 
 function showLoading() {
 
@@ -1992,19 +2082,15 @@ function hideLoading() {
 }
 
 
-function showError(
-    message
-) {
+function showError(message) {
 
     const box =
         document.getElementById(
             "errorBox"
         );
 
-
     box.textContent =
         message;
-
 
     box.classList.remove(
         "hidden"
@@ -2027,32 +2113,21 @@ function hideError() {
 
 function clearResults() {
 
-    document
-        .getElementById(
-            "careerResultsSection"
-        )
-        .classList
-        .add(
-            "hidden"
-        );
+    [
+        "careerResultsSection",
+        "comparisonSection",
+        "jobResultsSection",
+        "dashboardSection"
+    ]
+    .forEach(
+        id => {
 
-
-    document
-        .getElementById(
-            "jobResultsSection"
-        )
-        .classList
-        .add(
-            "hidden"
-        );
-
-
-    document
-        .getElementById(
-            "comparisonSection"
-        )
-        .classList
-        .add(
-            "hidden"
-        );
+            document
+                .getElementById(id)
+                .classList
+                .add(
+                    "hidden"
+                );
+        }
+    );
 }

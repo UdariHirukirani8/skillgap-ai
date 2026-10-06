@@ -36,6 +36,15 @@ from skill_impact import rank_skill_impacts
 from career_roadmap import build_career_roadmap
 from career_compare import compare_careers
 
+from career_plan import (
+    save_career_plan,
+    get_saved_plans,
+    get_saved_plan,
+    update_task_progress,
+    calculate_plan_progress,
+    delete_career_plan
+)
+
 
 # ==================================================
 # FASTAPI APP
@@ -47,9 +56,9 @@ app = FastAPI(
         "AI-powered career intelligence platform for "
         "job matching, career discovery, skill-gap analysis, "
         "skill impact simulation, personalized career roadmaps, "
-        "and career comparison."
+        "career comparison, and saved career plans."
     ),
-    version="2.3.0"
+    version="2.4.0"
 )
 
 
@@ -113,6 +122,17 @@ class CareerCompareRequest(BaseModel):
     occupations: list[str]
 
 
+class SaveCareerPlanRequest(BaseModel):
+    skills: list[str]
+    occupation: str
+
+
+class UpdateProgressRequest(BaseModel):
+    stage: str
+    task_index: int
+    completed: bool
+
+
 # ==================================================
 # HOME
 # ==================================================
@@ -125,7 +145,7 @@ def home():
             "SkillGap AI API is running",
 
         "version":
-            "2.3.0"
+            "2.4.0"
     }
 
 
@@ -161,7 +181,6 @@ def recommend_jobs(
         .strip()
         .lower()
     )
-
 
     jobs = df[
         df["category"]
@@ -278,9 +297,9 @@ def recommend_jobs(
         )
 
 
-    # ==================================================
+    # ------------------------------------------
     # LEARN NEXT
-    # ==================================================
+    # ------------------------------------------
 
     skill_frequency = {}
 
@@ -391,7 +410,7 @@ def discover_career_options(
 
 
 # ==================================================
-# SKILL IMPACT SIMULATOR
+# SKILL IMPACT
 # ==================================================
 
 @app.post("/skill-impact")
@@ -472,4 +491,139 @@ def compare_career_options(
     return compare_careers(
         request.skills,
         request.occupations
+    )
+
+
+# ==================================================
+# SAVE CAREER PLAN
+# ==================================================
+
+@app.post("/career-plans")
+def create_career_plan(
+    request: SaveCareerPlanRequest
+):
+
+    return save_career_plan(
+        request.skills,
+        request.occupation
+    )
+
+
+# ==================================================
+# GET ALL SAVED CAREER PLANS
+# ==================================================
+
+@app.get("/career-plans")
+def list_career_plans():
+
+    plans = get_saved_plans()
+
+    results = []
+
+
+    for plan in plans:
+
+        progress_summary = (
+            calculate_plan_progress(
+                plan
+            )
+        )
+
+
+        results.append({
+            **plan,
+
+            "progress_summary":
+                progress_summary
+        })
+
+
+    return {
+        "total_plans":
+            len(results),
+
+        "plans":
+            results
+    }
+
+
+# ==================================================
+# GET ONE SAVED CAREER PLAN
+# ==================================================
+
+@app.get("/career-plans/{plan_id}")
+def get_career_plan(
+    plan_id: int
+):
+
+    plan = get_saved_plan(
+        plan_id
+    )
+
+
+    if "error" in plan:
+
+        return plan
+
+
+    plan[
+        "progress_summary"
+    ] = (
+        calculate_plan_progress(
+            plan
+        )
+    )
+
+
+    return plan
+
+
+# ==================================================
+# UPDATE ROADMAP PROGRESS
+# ==================================================
+
+@app.patch(
+    "/career-plans/{plan_id}/progress"
+)
+def update_career_plan_progress(
+    plan_id: int,
+    request: UpdateProgressRequest
+):
+
+    plan = update_task_progress(
+        plan_id,
+        request.stage,
+        request.task_index,
+        request.completed
+    )
+
+
+    if "error" in plan:
+
+        return plan
+
+
+    plan[
+        "progress_summary"
+    ] = (
+        calculate_plan_progress(
+            plan
+        )
+    )
+
+
+    return plan
+
+
+# ==================================================
+# DELETE SAVED CAREER PLAN
+# ==================================================
+
+@app.delete("/career-plans/{plan_id}")
+def remove_career_plan(
+    plan_id: int
+):
+
+    return delete_career_plan(
+        plan_id
     )

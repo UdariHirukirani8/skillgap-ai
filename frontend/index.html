@@ -24,8 +24,19 @@
                 </p>
             </div>
 
-            <div class="status-badge">
-                Career Intelligence
+            <div class="topbar-actions">
+
+                <button
+                    class="dashboard-nav-button"
+                    onclick="loadCareerDashboard()"
+                >
+                    My Career Dashboard
+                </button>
+
+                <div class="status-badge">
+                    Career Intelligence
+                </div>
+
             </div>
 
         </header>
@@ -46,9 +57,9 @@
                 </h2>
 
                 <p>
-                    Analyze your skills, discover suitable careers,
-                    identify skill gaps, simulate learning impact,
-                    compare career paths, and build your roadmap.
+                    Discover careers, compare paths, analyze skill gaps,
+                    simulate learning impact, create roadmaps,
+                    and track your progress.
                 </p>
 
             </section>
@@ -77,7 +88,7 @@
             </section>
 
 
-            <!-- INPUT CARD -->
+            <!-- INPUT -->
 
             <section class="input-card">
 
@@ -89,7 +100,7 @@
 
                     <textarea
                         id="skills"
-                        placeholder="Example: Python, SQL, Statistics, Data Analysis, Communication, Problem Solving"
+                        placeholder="Python, SQL, Statistics, Data Analysis, Communication, Problem Solving"
                     ></textarea>
 
                 </div>
@@ -133,21 +144,14 @@
             </section>
 
 
-            <!-- LOADING -->
-
             <div
                 id="loading"
                 class="loading hidden"
             >
                 <div class="spinner"></div>
-
-                <p>
-                    Analyzing your skills...
-                </p>
+                <p>Analyzing your skills...</p>
             </div>
 
-
-            <!-- ERROR -->
 
             <div
                 id="errorBox"
@@ -165,7 +169,6 @@
                 <div class="section-heading">
 
                     <div>
-
                         <span class="eyebrow">
                             YOUR RESULTS
                         </span>
@@ -173,7 +176,6 @@
                         <h2>
                             Career Matches
                         </h2>
-
                     </div>
 
                     <div
@@ -192,7 +194,7 @@
             </section>
 
 
-            <!-- CAREER COMPARISON -->
+            <!-- COMPARISON -->
 
             <section
                 id="comparisonSection"
@@ -202,7 +204,6 @@
                 <div class="section-heading">
 
                     <div>
-
                         <span class="eyebrow">
                             CAREER DECISION SUPPORT
                         </span>
@@ -210,7 +211,6 @@
                         <h2>
                             Career Comparison
                         </h2>
-
                     </div>
 
                 </div>
@@ -240,7 +240,6 @@
                 <div class="section-heading">
 
                     <div>
-
                         <span class="eyebrow">
                             JOB ANALYSIS
                         </span>
@@ -248,7 +247,6 @@
                         <h2>
                             Top Job Matches
                         </h2>
-
                     </div>
 
                 </div>
@@ -265,7 +263,6 @@
                     <div class="section-heading">
 
                         <div>
-
                             <span class="eyebrow">
                                 SKILL DEVELOPMENT
                             </span>
@@ -273,7 +270,6 @@
                             <h2>
                                 Skills To Learn Next
                             </h2>
-
                         </div>
 
                     </div>
@@ -288,6 +284,49 @@
 
             </section>
 
+
+            <!-- CAREER DASHBOARD -->
+
+            <section
+                id="dashboardSection"
+                class="results-section hidden"
+            >
+
+                <div class="section-heading dashboard-heading">
+
+                    <div>
+                        <span class="eyebrow">
+                            MY CAREER PLANS
+                        </span>
+
+                        <h2>
+                            Career Dashboard
+                        </h2>
+                    </div>
+
+                    <button
+                        class="refresh-dashboard-button"
+                        onclick="loadCareerDashboard()"
+                    >
+                        Refresh
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="dashboardSummary"
+                    class="dashboard-summary"
+                ></div>
+
+
+                <div
+                    id="dashboardPlans"
+                    class="dashboard-grid"
+                ></div>
+
+            </section>
+
         </main>
 
 
@@ -299,7 +338,6 @@
         >
 
             <div>
-
                 <strong>
                     Compare Careers
                 </strong>
@@ -307,7 +345,6 @@
                 <span id="compareCount">
                     0 careers selected
                 </span>
-
             </div>
 
 
